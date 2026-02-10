@@ -17,7 +17,7 @@ mpl.use('Agg')
 # VARIABILI GLOBALI
 # ------------------------------
 # Event name
-event_name='apollo'
+event_name='blas'
 
 # File of tide-gauges location
 coo_file = 'TGs_'+event_name+'.coo'
@@ -73,8 +73,8 @@ elif event_name == 'ianos':
 elif event_name == 'apollo':
 
    # Event
-   event_start = pd.Timestamp('2023-10-23 00:00:00', tz='UTC')
-   event_end   = pd.Timestamp('2023-11-02 23:59:59', tz='UTC')
+   event_start = pd.Timestamp('2021-10-23 00:00:00', tz='UTC')
+   event_end   = pd.Timestamp('2021-11-02 23:59:59', tz='UTC')
 
    # Forecast and Analysis plots limits
    xlim_start = pd.Timestamp('2021-10-05 00:00:00', tz='UTC')
@@ -83,11 +83,68 @@ elif event_name == 'apollo':
    xlim_fc_end   = pd.Timestamp('2021-11-05 23:59:59', tz='UTC')
 
    # SURGE: max wrt base period
-   base_start  = pd.Timestamp('2023-10-19 00:00:00', tz='UTC')
-   base_end    = pd.Timestamp('2023-10-22 23:59:59', tz='UTC')
+   base_start  = pd.Timestamp('2021-10-19 00:00:00', tz='UTC')
+   base_end    = pd.Timestamp('2021-10-22 23:59:59', tz='UTC')
 
    # Bulletin dates
-   bdates = pd.date_range('2023-10-14','2023-11-01', freq='D')
+   bdates = pd.date_range('2021-10-14','2023-11-01', freq='D')
+
+elif event_name == 'blas':
+
+   # Event
+   event_start = pd.Timestamp('2021-11-02 00:00:00', tz='UTC')
+   event_end   = pd.Timestamp('2021-11-18 23:59:59', tz='UTC')
+
+   # Forecast and Analysis plots limits
+   xlim_start = pd.Timestamp('2021-10-25 00:00:00', tz='UTC')
+   xlim_end   = pd.Timestamp('2021-11-30 23:59:59', tz='UTC')
+   xlim_fc_start = pd.Timestamp('2021-10-31 00:00:00', tz='UTC')
+   xlim_fc_end   = pd.Timestamp('2021-11-20 23:59:59', tz='UTC')
+
+   # SURGE: max wrt base period
+   base_start  = pd.Timestamp('2021-10-28 00:00:00', tz='UTC')
+   base_end    = pd.Timestamp('2021-10-31 23:59:59', tz='UTC')
+
+   # Bulletin dates
+   bdates = pd.date_range('2021-10-23','2021-11-17', freq='D')
+
+elif event_name == 'vaa22':
+
+   # Event
+   event_start = pd.Timestamp('2022-11-22 00:00:00', tz='UTC')
+   event_end   = pd.Timestamp('2022-11-22 23:59:59', tz='UTC')
+
+   # Forecast and Analysis plots limits
+   xlim_start = pd.Timestamp('2022-11-01 00:00:00', tz='UTC')
+   xlim_end   = pd.Timestamp('2022-12-01 23:59:59', tz='UTC')
+   xlim_fc_start = pd.Timestamp('2022-11-20 00:00:00', tz='UTC')
+   xlim_fc_end   = pd.Timestamp('2022-11-25 23:59:59', tz='UTC')
+
+   # SURGE: max wrt base period
+   base_start  = pd.Timestamp('2022-11-17 00:00:00', tz='UTC')
+   base_end    = pd.Timestamp('2022-11-20 23:59:59', tz='UTC')
+
+   # Bulletin dates
+   bdates = pd.date_range('2022-11-13','2021-11-21', freq='D')
+
+elif event_name == 'daniel':
+
+   # Event
+   event_start = pd.Timestamp('2023-09-04 00:00:00', tz='UTC')
+   event_end   = pd.Timestamp('2023-09-11 23:59:59', tz='UTC')
+
+   # Forecast and Analysis plots limits
+   xlim_start = pd.Timestamp('2022-11-01 00:00:00', tz='UTC')
+   xlim_end   = pd.Timestamp('2022-12-01 23:59:59', tz='UTC')
+   xlim_fc_start = pd.Timestamp('2022-11-20 00:00:00', tz='UTC')
+   xlim_fc_end   = pd.Timestamp('2022-11-25 23:59:59', tz='UTC')
+
+   # SURGE: max wrt base period
+   base_start  = pd.Timestamp('2022-11-17 00:00:00', tz='UTC')
+   base_end    = pd.Timestamp('2022-11-20 23:59:59', tz='UTC')
+
+   # Bulletin dates
+   bdates = pd.date_range('2022-11-13','2021-11-21', freq='D')
 
 elif event_name == 'harry':
 
@@ -904,10 +961,22 @@ def main():
             
             # calcolo max su ANALYSIS e OBS
             df_event = df_plot.loc[event_start:event_end]
-            idx_max_obs = df_event['ssh_obs'].idxmax()
-            max_obs = df_event['ssh_obs'].max()
-            idx_max_mod = df_event['ssh_mod_offset'].idxmax()
-            max_mod = df_event['ssh_mod_offset'].max()
+            try:
+               idx_max_obs = df_event['ssh_obs'].idxmax()
+            except:
+               idx_max_obs = None
+            try:
+               max_obs = df_event['ssh_obs'].max()
+            except:
+               max_obs = None
+            try:
+               idx_max_mod = df_event['ssh_mod_offset'].idxmax()
+            except:
+               idx_max_mod = None
+            try:
+               max_mod = df_event['ssh_mod_offset'].max()
+            except:
+               max_mod = None
             
             plt.plot(
                 df_plot.index,

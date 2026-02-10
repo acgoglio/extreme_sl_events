@@ -6,15 +6,15 @@ import pandas as pd
 # INPUT UTENTE
 # ==========================
 data_dir = Path("/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/")
-output_csv = Path("TGs_harry.coo")
+output_csv = Path("TGs_daniel.coo")
 
 # Intervallo temporale
-t_start_input = pd.to_datetime("2025-12-23")
-t_end_input   = pd.to_datetime("2026-01-23")
+t_start_input = pd.to_datetime("2023-08-15")
+t_end_input   = pd.to_datetime("2023-09-20")
 
 # Lon-Lat Box:
-lat_min, lat_max = 30.0, 42.0
-lon_min, lon_max = -2.0, 30.0
+lat_min, lat_max = 30.0, 40.0
+lon_min, lon_max = 12.0, 36.0
 
 # Gloria 2020
 # t_start_input = pd.to_datetime("2020-01-01")
@@ -38,7 +38,7 @@ lon_min, lon_max = -2.0, 30.0
 # t_start_input = pd.to_datetime("2021-10-25")
 # t_end_input   = pd.to_datetime("2021-11-30")
 # lat_min, lat_max = 35.0, 43.0
-# lon_min, lon_max = 12.0, 16.0
+# lon_min, lon_max = 0.0, 16.0
 #
 # Venice Acqua Alta 2022
 #t_start_input = pd.to_datetime("2022-11-01")
@@ -47,8 +47,8 @@ lon_min, lon_max = -2.0, 30.0
 #lon_min, lon_max = 12.0, 22.0
 #
 # Daniel 2023
-#t_start_input = pd.to_datetime("2023-10-20")
-#t_end_input   = pd.to_datetime("2023-11-20")
+#t_start_input = pd.to_datetime("2023-08-15")
+#t_end_input   = pd.to_datetime("2023-19-20")
 #lat_min, lat_max = 30.0, 40.0
 #lon_min, lon_max = 12.0, 36.0
 #
