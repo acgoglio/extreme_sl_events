@@ -17,7 +17,7 @@ mpl.use('Agg')
 # VARIABILI GLOBALI
 # ------------------------------
 # Event name
-event_name='harry'
+event_name='apollo'
 
 # File of tide-gauges location
 coo_file = 'TGs_'+event_name+'.coo'
@@ -69,6 +69,25 @@ elif event_name == 'ianos':
 
    # Bulletin dates
    bdates = pd.date_range('2020-09-06','2020-10-20', freq='D')
+
+elif event_name == 'apollo':
+
+   # Event
+   event_start = pd.Timestamp('2023-10-23 00:00:00', tz='UTC')
+   event_end   = pd.Timestamp('2023-11-02 23:59:59', tz='UTC')
+
+   # Forecast and Analysis plots limits
+   xlim_start = pd.Timestamp('2021-10-05 00:00:00', tz='UTC')
+   xlim_end   = pd.Timestamp('2021-11-05 23:59:59', tz='UTC')
+   xlim_fc_start = pd.Timestamp('2021-10-18 00:00:00', tz='UTC')
+   xlim_fc_end   = pd.Timestamp('2021-11-05 23:59:59', tz='UTC')
+
+   # SURGE: max wrt base period
+   base_start  = pd.Timestamp('2023-10-19 00:00:00', tz='UTC')
+   base_end    = pd.Timestamp('2023-10-22 23:59:59', tz='UTC')
+
+   # Bulletin dates
+   bdates = pd.date_range('2023-10-14','2023-11-01', freq='D')
 
 elif event_name == 'harry':
 

@@ -1,5 +1,5 @@
-lat;lon;name;path
-36.83553695678711;30.61260986328125;ANTALYA;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_ANTALYA.nc
+#lat;lon;name;path
+#36.83553695678711;30.61260986328125;ANTALYA;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_ANTALYA.nc
 37.03105545043945;27.42477035522461;BODRUM;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_BODRUM.nc
 36.09741973876953;32.94131088256836;BOZYAZI;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_BOZYAZI.nc
 35.3484001159668;25.15254020690918;Hrakleio;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_Hrakleio.nc
