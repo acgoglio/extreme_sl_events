@@ -1,0 +1,628 @@
+#!/bin/bash
+#
+#BSUB -J %J_NAME%          # Name of the job.
+#BSUB -o %J_OUT%  # Appends std output to file %J.out.
+#BSUB -e %J_ERR%  # Appends std error to file %J.err.
+##BSUB -cwd %J_CWD%
+#BSUB -M %J_MEM%
+#BSUB -q %J_QUEUE%
+#BSUB -n %J_CPUS%    # Number of CPUs
+#BSUB -P %J_PROJ%
+#
+# ACG 23/06/2019
+# Script for TS extraction  
+# Ini file: p_extr.ini 
+#
+#set -u
+#set -e
+set -x 
+######################################################
+
+# Source ini file
+  SRC_DIR=%SRC_DIR%
+  source ${SRC_DIR}/p_extr.ini
+
+# Read and check infos (work dir, file names, archive dir, etc.)
+
+  # Workdir check
+  if [[ -d $ANA_WORKDIR ]]; then
+     cd $ANA_WORKDIR
+     echo "WORKDIR: $ANA_WORKDIR"
+     echo "SRC_DIR=${SRC_DIR}"
+     cp ${SRC_DIR}/p_extr.ini ${ANA_WORKDIR}
+     
+     # Clean workdir
+     #echo "WARNING: I am going to remove all files in $ANA_WORKDIR ..."
+     #sleep 1
+     #for TO_BE_RM in $( ls $ANA_WORKDIR ); do
+         #rm $ANA_WORKDIR/$TO_BE_RM
+         #echo $TO_BE_RM
+     #done
+
+  else
+     echo "ERROR: WORKDIR $ANA_WORKDIR NOT FOUND!!"
+     exit
+  fi
+
+  # Input file check
+  
+  # Num check
+  if [[ ${#ANA_INPATHS[@]} -ne ${#ANA_INFILES_TPL[@]} ]]; then
+     echo "ERROR: Check Inputs array, something is missing!"
+     exit
+  else
+     INSET_NUM=${#ANA_INPATHS[@]}
+     echo "The num of input file sets is $INSET_NUM"
+  fi
+
+  # File check
+
+  IDX_IN=0
+  while [[ $IDX_IN -lt $INSET_NUM ]]; do
+
+    if [[ -d ${ANA_INPATHS[${IDX_IN}]} ]]; then 
+
+      IDX_DATE=$ANA_STARTDATE
+      FOUNDNOTFOUND_NUM=0
+      while [[ $IDX_DATE -le $ANA_ENDDATE ]]; do
+
+        echo "Date: $IDX_DATE"
+        ANA_INFILE=$( echo ${ANA_INFILES_TPL[${IDX_IN}]} | sed -e s/%YYYYMMDD%/$IDX_DATE/g | sed -e s/%YYYY%/${IDX_DATE:0:4}/g | sed -e s/%MM%/${IDX_DATE:4:2}/g )
+        ANA_INFILE_2=$( echo ${ANA_INPATHS_2} | sed -e s/%YYYYMMDD%/$IDX_DATE/g | sed -e s/%YYYY%/${IDX_DATE:0:4}/g | sed -e s/%MM%/${IDX_DATE:4:2}/g )
+
+        FOUND_NUM=0
+        NOT_FOUND_NUM=0
+
+        if [[ !  -e ${ANA_INPATHS[$IDX_IN]}/${ANA_INFILE_2}/$ANA_INFILE ]]; then 
+           FOUND_NUM=$(( $FOUND_NUM + 1 ))
+           if [[ ${MOD_FLAG} != 0 ]]; then
+              echo "Found infile: $ANA_INFILE"
+              ln -sf ${ANA_INPATHS[$IDX_IN]}/${ANA_INFILE_2}/$ANA_INFILE .
+           fi
+        else
+           NOT_FOUND_NUM=$(( $NOT_FOUND_NUM + 1 ))
+           echo "NOT Found infile: ${ANA_INPATHS[$IDX_IN]}/${ANA_INFILE_2}/$ANA_INFILE"
+        fi
+
+      FOUNDNOTFOUND_NUM=$(( ${FOUNDNOTFOUND_NUM} +1 ))
+      IDX_DATE=$( date -u -d "$IDX_DATE 1 day" +%Y%m%d ) 
+      done    
+    else 
+      echo "ERROR: Input dir ${ANA_INPATHS[${IDX_IN}]} NOT FOUND!!"
+      exit
+    fi
+ 
+    IDX_IN=$(( $IDX_IN + 1 ))
+    done
+
+# Read ana type from ini file and set the environment
+  
+  echo "TS analisys for points listed in $TS_COOFILE is required!"
+  module load $TS_MODULE
+  echo "Enviroment.."
+
+
+####################### ANALISYS ##############################
+# +-----------------------+
+# | POINT                 |
+# +-----------------------+ 
+
+# Read point coo ( and set job array )
+    
+     declare -a COO_TS_LAT
+     declare -a COO_TS_LON
+     declare -a COO_TS_NAME
+
+     echo "Reading STZ coordinates in $TS_COOFILE file.."
+
+     COO_IDX=0
+     while read COOFILE_LINE; do
+       if [[ ${COOFILE_LINE:0:1} != "#" ]]; then
+          if [[ ${SUBREGION_FLAG} == 0 ]]; then
+             COO_TS_LAT[${COO_IDX}]=$( echo $COOFILE_LINE | cut -f 1 -d";" )
+             COO_TS_LON[${COO_IDX}]=$( echo $COOFILE_LINE | cut -f 2 -d";" )
+             COO_TS_NAME[${COO_IDX}]=$( echo $COOFILE_LINE | cut -f 3 -d";" )
+             echo "STZ NAME: ${COO_TS_NAME[${COO_IDX}]} "
+             echo "LAT/LON: ${COO_TS_LAT[${COO_IDX}]}/${COO_TS_LON[${COO_IDX}]}"
+             if [[ $OBS_FLAG == 1 ]]; then
+               OBS_PATH[${COO_IDX}]=$( echo $COOFILE_LINE | cut -f 4 -d";" )
+               OBS_NAME[${COO_IDX}]=$( echo $COOFILE_LINE | cut -f 5 -d";" )
+               echo "OBS_FILES: ${OBS_PATH[$COO_IDX]}/${OBS_NAME[$COO_IDX]}"
+             elif [[ $OBS_FLAG == 2 ]]; then
+               OBS_PATH[${COO_IDX}]=$( echo $COOFILE_LINE | cut -f 4 -d";" )
+               OBS_NAME[${COO_IDX}]=$( echo $COOFILE_LINE | cut -f 5 -d";" )
+               echo "OBS_FILES: ${OBS_PATH[$COO_IDX]}/${OBS_NAME[$COO_IDX]}"
+             elif [[ $OBS_FLAG == 3 ]]; then
+               OBS_PATH[${COO_IDX}]=$( echo $COOFILE_LINE | cut -f 4 -d";" )
+               OBS_NAME[${COO_IDX}]=$( echo $COOFILE_LINE | cut -f 5 -d";" )
+               echo "OBS_FILES: ${OBS_PATH[$COO_IDX]}/${OBS_NAME[$COO_IDX]}"
+             fi
+             COO_IDX=$(( $COO_IDX + 1 ))
+          elif [[ ${SUBREGION_FLAG} == 1 ]]; then
+               TOBECK_LAT=$( echo $COOFILE_LINE | cut -f 1 -d";" )
+               TOBECK_LON=$( echo $COOFILE_LINE | cut -f 2 -d";" )
+               if [[ $TOBECK_LAT -le $SUBREGION_MAX_LAT ]] && [[ $TOBECK_LAT -ge $SUBREGION_MIN_LAT ]] && [[ $TOBECK_LON -le $SUBREGION_MAX_LON ]] && [[ $TOBECK_LON -ge $SUBREGION_MIN_LON ]]; then
+                  COO_TS_LAT[${COO_IDX}]=$( echo $COOFILE_LINE | cut -f 1 -d";" )
+                  COO_TS_LON[${COO_IDX}]=$( echo $COOFILE_LINE | cut -f 2 -d";" )
+                  COO_TS_NAME[${COO_IDX}]=$( echo $COOFILE_LINE | cut -f 3 -d";" )
+                  echo "STZ NAME: ${COO_TS_NAME[${COO_IDX}]} "
+                  echo "LAT/LON: ${COO_TS_LAT[${COO_IDX}]}/${COO_TS_LON[${COO_IDX}]}"
+                  if [[ $OBS_FLAG == 1 ]]; then
+                    OBS_PATH[${COO_IDX}]=$( echo $COOFILE_LINE | cut -f 4 -d";" )
+                    OBS_NAME[${COO_IDX}]=$( echo $COOFILE_LINE | cut -f 5 -d";" )
+                    echo "OBS_FILES: ${OBS_PATH[$COO_IDX]}/${OBS_NAME[$COO_IDX]}"
+                  elif [[ $OBS_FLAG == 2 ]]; then
+                    OBS_PATH[${COO_IDX}]=$( echo $COOFILE_LINE | cut -f 4 -d";" )
+                    OBS_NAME[${COO_IDX}]=$( echo $COOFILE_LINE | cut -f 5 -d";" )
+                    echo "OBS_FILES: ${OBS_PATH[$COO_IDX]}/${OBS_NAME[$COO_IDX]}"
+                  elif [[ $OBS_FLAG == 3 ]]; then
+                    OBS_PATH[${COO_IDX}]=$( echo $COOFILE_LINE | cut -f 4 -d";" )
+                    OBS_NAME[${COO_IDX}]=$( echo $COOFILE_LINE | cut -f 5 -d";" )
+                    echo "OBS_FILES: ${OBS_PATH[$COO_IDX]}/${OBS_NAME[$COO_IDX]}"
+                  fi
+                  COO_IDX=$(( $COO_IDX + 1 ))
+               fi
+          fi
+       fi 
+     done < $TS_COOFILE
+
+     echo "COO NUM = ${#COO_TS_NAME[@]}"
+
+################# MODEL EXTRACTION ####################
+
+ if [[ $MOD_FLAG == 1 ]]; then
+
+  echo "------ TS Extraction from model outputs ------"
+
+  TS_OUTFILE_PRE="ts"
+  TS_OUTFILE_TPL="${TS_OUTFILE_PRE}_${ANA_STARTDATE}_${ANA_ENDDATE}_%STZ%_%FIELD%_%IDX%.txt"
+
+  IDX_IN=0
+  while [[ $IDX_IN -lt $INSET_NUM ]]; do
+
+    echo "I am working on ${ANA_INTAG[$IDX_IN]} dataset..."
+
+    for VAR in ${FIELDS[@]}; do
+
+     echo "Extracting field: $VAR .. "
+
+     EXT_INS=$(  echo "${ANA_INFILES_TPL[${IDX_IN}]}" | sed -e "s/%YYYYMMDD%/"*"/g" | sed -e "s/%YYYY%/"*"/g" | sed -e "s/%MM%/"*"/g" )
+     
+     # Loop on the TGs
+     TS_IDX=0
+     while [[ $TS_IDX -lt $COO_IDX ]]; do
+
+        echo "I am going to write and submit: ${ANA_WORKDIR}/TG_${TS_IDX}.job"
+ 
+        # Built the job from the template
+        echo "I am building the job.."
+        # Sed file creation and sobstitution of parematers in the templates  
+        SED_FILE=sed_file.txt
+        cat << EOF > ${ANA_WORKDIR}/${SED_FILE}
+   s/%ANA_INTAG%/${ANA_INTAG[${IDX_IN}]}/g
+   s/%ANA_WORKDIR%/${ANA_WORKDIR//\//\\/}/g
+   s/%TS_IDX%/${TS_IDX}/g
+   s/%NC_TS_OUTFILE_TPL%/${NC_TS_OUTFILE_TPL//\//\\/}/g
+   s/%IDX_IN%/${IDX_IN}/g
+   s/%VAR%/${VAR}/g
+   s/%COO_TS_NAME%/${COO_TS_NAME[${TS_IDX}]}/g
+   s/%EXTR_POINT_NUM%/${EXTR_POINT_NUM}/g
+   s/%COO_TS_LON%/${COO_TS_LON[${TS_IDX}]}/g
+   s/%COO_TS_LAT%/${COO_TS_LAT[${TS_IDX}]}/g
+   s/%IDX_NC%/${IDX_NC}/g
+   s/%LAT_INT%/${LAT_INT}/g
+   s/%LON_INT%/${LON_INT}/g
+   s/%EXT_INS%/${EXT_INS//\//\\/}/g
+   s/%RM_MEAN_FLAG%/${RM_MEAN_FLAG}/g
+   s/%INFILES_DIM%/${INFILES_DIM}/g
+   #
+EOF
+
+      sed -f ${ANA_WORKDIR}/${SED_FILE} pextr_TGs_job.temp > ${ANA_WORKDIR}/TG_${TS_IDX}.job
+      rm ${ANA_WORKDIR}/${SED_FILE}
+echo ".. Done"
+echo "Job path/name: ${ANA_WORKDIR}/TG_${TS_IDX}.job"
+
+        # Run the job
+        echo "Submitting Single TGs jobs to queue ${J_QUEUE} (Good luck!).."
+	bsub -J TG_extr_${TS_IDX} -o ${ANA_WORKDIR}/extr_%J.out_${TS_IDX} -e ${ANA_WORKDIR}/extr_%J.err_${TS_IDX} -M 10G -q ${J_QUEUE} -n 1 -P ${J_PROJ}  <${ANA_WORKDIR}/TG_${TS_IDX}.job
+        echo "Check the output in ${ANA_WORKDIR} and/or the errors in ${J_ERR}!"
+
+
+     TS_IDX=$(( $TS_IDX + 1 ))
+     done
+
+    done
+
+  IDX_IN=$(( $IDX_IN + 1 ))
+  done
+
+   # Clean links to the mod
+   #for TOBERM in $(ls ${EXT_INS}); do
+   #    rm -v $TOBERM
+   #done
+ fi
+
+ echo "End of Mod extraction"
+ ############################## OBS EXTRACTION ########################
+ if [[ $OBS_FLAG != 0 ]]; then
+    echo "Obs extraction.."
+ fi
+
+
+ if [[ $OBS_FLAG == 1 ]]; then
+
+ # Extract values from netCDF TG obs (EMODnet database)
+
+    echo "------ OBS Extraction ------"
+
+    # Inizialize missing perc file (mv previous files in order to avoid unwanted rm)
+    MISSING_PERC_FILENAME="missing_perc_${ANA_STARTDATE:0:8}_${ANA_ENDDATE:0:8}.txt"
+    if [[ -e ${ANA_WORKDIR}/${MISSING_PERC_FILENAME} ]]; then
+       mv ${ANA_WORKDIR}/${MISSING_PERC_FILENAME} ${ANA_WORKDIR}/${MISSING_PERC_FILENAME}_bk
+    fi
+    echo "# Percentage of missing value per TG in ${ANA_STARTDATE:0:8} - ${ANA_ENDDATE:0:8}" > ${ANA_WORKDIR}/${MISSING_PERC_FILENAME}
+
+    IDX_VAR=0
+    for O_VAR in ${OBS_VAR[@]}; do 
+      VAR=${FIELDS[${IDX_VAR}]}
+      O_VAR_QC=${OBS_VAR_QF[${IDX_VAR}]}
+      echo "Obs Var: $O_VAR"
+         
+        STZ_IDX=0
+        while [[ $STZ_IDX -lt $COO_IDX ]]; do
+          O_STZ=${COO_TS_NAME[$STZ_IDX]}
+          O_PATH=${OBS_PATH[$STZ_IDX]}
+          O_NAME=${OBS_NAME[$STZ_IDX]}
+       
+         if [[ $O_PATH != "NaN" ]] && [[ $O_NAME != "NaN" ]] ; then
+
+          NCOBS_OUTFILE_TPL="%STZ%_obs.nc"
+          NCOBS_OUTFILE=$( echo "$NCOBS_OUTFILE_TPL" | sed -e "s/%FIELD%/${O_VAR}/g" -e "s/%STZ%/${O_STZ}/g" )
+
+          echo "# Obs data " 
+          echo "# TS in ${O_STZ} " 
+          echo "# VAR: ${O_VAR}" 
+          echo "# YEAR: ${ANA_STARTDATE:0:4}"
+          echo "# DT: ${ANA_STARTDATE:0:6} - ${ANA_ENDDATE:0:6}" 
+
+           ID_DATE=$ANA_STARTDATE
+           ATLEAST_ONEFOUND=0
+           #while [[ ${ID_DATE:0:6} -le ${ANA_ENDDATE:0:6} ]]; do
+           #OBS_FILE=$( echo "${O_PATH}/${O_NAME}" | sed -e "s/%YYYY%/${ID_DATE:0:4}/g" -e "s/%YYYYMM%/${ID_DATE:0:6}/g" )
+           OBS_FILE=$( echo "${O_PATH}/${O_NAME}" | sed -e "s/%YYYY%/${ID_DATE:0:4}/g")
+
+           for OBS_FOUND in $( ls $OBS_FILE ); do
+              if [[ -f $OBS_FOUND ]]; then
+                 ATLEAST_ONEFOUND=$(( ${ATLEAST_ONEFOUND} + 1 ))
+                 #cp $OBS_FOUND ncobs_tmp_${ID_DATE}.nc
+                 # Remove the attribute coordinates if present because of CDO version
+                 ncatted -O -a coordinates,,d,, $OBS_FOUND prepre_ncobs_tmp_${ID_DATE}.nc
+                 # Set the time
+                 #ncatted -O -a time_origin,time,d,, prepre_ncobs_tmp_${ID_DATE}.nc pre_ncobs_tmp_${ID_DATE}.nc
+                 # Define time dimension instead of row
+                 ncrename -d row,time prepre_ncobs_tmp_${ID_DATE}.nc ncobs_tmp_${ID_DATE}.nc
+                 #cdo -setreftime,1950-01-01,00:00:00,1day pre_ncobs_tmp_${ID_DATE}.nc ncobs_tmp_${ID_DATE}.nc
+                 # Cut the sossheig field and rename it
+                 #cdo expr,"sossheig=SLEV*1" ncobs_tmp_${ID_DATE}.nc sossobs_tmp_${ID_DATE}.nc # old: to be rm
+                 #cdo expr,"sossheig_qf=SLEV_QC*1" ncobs_tmp_${ID_DATE}.nc sossobsqf_tmp_${ID_DATE}.nc # OLD: to be rm
+                 cdo expr,"${VAR}=${O_VAR}*1" ncobs_tmp_${ID_DATE}.nc sossobs_tmp_${ID_DATE}.nc
+                 cdo expr,"${VAR}_qf=${O_VAR_QC}*1" ncobs_tmp_${ID_DATE}.nc sossobsqf_tmp_${ID_DATE}.nc
+                 #cdo expr,"sossheig_posqf=POSITION_QC*1" ncobs_tmp_${ID_DATE}.nc sossobsposqf_tmp_${ID_DATE}.nc
+                 rm  ncobs_tmp_${ID_DATE}.nc 
+                 #rm  pre_ncobs_tmp_${ID_DATE}.nc
+                 rm  prepre_ncobs_tmp_${ID_DATE}.nc
+              else
+                echo "NOT found OBS file: $OBS_FILE "
+              fi
+           done
+            
+           #ID_DATE=$( date -u -d "${ID_DATE} 1 month" +%Y%m%d )
+           #done
+
+           # Merge tmp files, select field, compute hourly mean and subtract the mean value
+           if [[ ${ATLEAST_ONEFOUND} == 1 ]]; then 
+             mv sossobs_tmp_${ID_DATE}.nc mergedall_obs.nc
+             mv sossobsqf_tmp_${ID_DATE}.nc mergedallqf_obs.nc
+             #mv sossobsposqf_tmp_*.nc posqf_${O_STZ}.nc
+           elif [[ ${ATLEAST_ONEFOUND} > 1 ]]; then
+             # Merge all the time step
+             cdo mergetime sossobs_tmp_*.nc mergedall_obs.nc
+             cdo mergetime sossobsqf_tmp_*.nc mergedallqf_obs.nc
+             #cdo mergetime sossobsposqf_tmp_*.nc posqf_${O_STZ}.nc
+           fi
+           if [[ ${ATLEAST_ONEFOUND} != 0 ]]; then
+
+             # Cut the period and check if there is at least one time record !=0 (the reason of the double check is the different netcdf structure from previous version: to be improved!)
+             cdo seldate,${ANA_STARTDATE:0:4}-${ANA_STARTDATE:4:2}-${ANA_STARTDATE:6:2}T00:00:00,${ANA_ENDDATE:0:4}-${ANA_ENDDATE:4:2}-${ANA_ENDDATE:6:2}T23:59:59 mergedall_obs.nc merged_obs.nc || ATLEAST_ONEFOUND=0
+             cdo seldate,${ANA_STARTDATE:0:4}-${ANA_STARTDATE:4:2}-${ANA_STARTDATE:6:2}T00:00:00,${ANA_ENDDATE:0:4}-${ANA_ENDDATE:4:2}-${ANA_ENDDATE:6:2}T23:59:59 mergedallqf_obs.nc qf_${O_STZ}.nc || ATLEAST_ONEFOUND=0
+             #cdo seldate,${ANA_STARTDATE:0:4}-${ANA_STARTDATE:4:2}-${ANA_STARTDATE:6:2}T00:00:00,${ANA_ENDDATE:0:4}-${ANA_ENDDATE:4:2}-${ANA_ENDDATE:6:2}T23:59:59 mergedallposqf_obs.nc mergedposqf_obs.nc
+           fi
+
+           if [[ ${ATLEAST_ONEFOUND} != 0 ]]; then
+
+             if [[ $OBS_ORIGINAL_FLAG == 1 ]]; then
+
+               cp merged_obs.nc or_${NCOBS_OUTFILE}
+
+             fi
+
+             # Compute the hourly mean if freq is higher
+             cdo hourmean merged_obs.nc hmeaned_obs.nc
+
+             if [[ ${OBS_RMMEAN_FLAG} == 1  ]]; then
+                # Compute the global mean and subtract it 
+                cdo timmean hmeaned_obs.nc obs_mean.nc
+                cdo sub hmeaned_obs.nc obs_mean.nc ${NCOBS_OUTFILE}
+                # Clean workdir
+                for TOBERM in mergedall_obs.nc merged_obs.nc hmeaned_obs.nc obs_mean.nc sossobs_tmp_*.nc mergedallqf_obs.nc sossobsqf_tmp_*.nc ncobs_tmp_*.nc pre_ncobs_tmp_*.nc ; do
+                    if [[ -f $TOBERM ]]; then
+                       rm  $TOBERM
+                    fi
+                done
+             elif [[ ${OBS_RMMEAN_FLAG} == 0  ]]; then
+                mv hmeaned_obs.nc ${NCOBS_OUTFILE} 
+                # Clean workdir
+                for TOBERM in mergedall_obs.nc merged_obs.nc sossobs_tmp_*.nc mergedallqf_obs.nc sossobsqf_tmp_*.nc ncobs_tmp_*.nc pre_ncobs_tmp_*.nc ; do
+                    if [[ -f $TOBERM ]]; then
+                       rm  $TOBERM
+                    fi
+                done
+             fi
+      
+             # Compute and write the percentage of missing time steps
+             TOT_FOUND_PERTG=$( ncdump -h $NCOBS_OUTFILE | grep "UNLIMITED" | cut -f 2 -d"(" | cut -f 1 -d" ") # Num of hourly time-steps
+             PERCENT_PERTG=$(( ((${FOUNDNOTFOUND_NUM}*24)-${TOT_FOUND_PERTG})*100/(${FOUNDNOTFOUND_NUM}*24) | bc -l ))
+             # Dealing with change of freq inside the file.. 
+             if [[ ${PERCENT_PERTG} -ge 0 ]]; then
+                echo "GAP ${O_STZ} ${PERCENT_PERTG}%" | cut -f 8 -d"/" | sed -e "s/_obs.nc//g" >> ${ANA_WORKDIR}/${MISSING_PERC_FILENAME}
+             else
+                echo "GAP ${O_STZ} FREQ. ISSUES" | cut -f 8 -d"/" | sed -e "s/_obs.nc//g" >> ${ANA_WORKDIR}/${MISSING_PERC_FILENAME}
+             fi
+     
+             # Found gaps and fill gaps with nan if missing percentages is lower than %MISSING_THRESHOLD%
+             #if [[ ${FILLGAPS_FLAG} != 0 ]] && [[ $(( (${FOUNDNOTFOUND_NUM}*24)-${TOT_FOUND_PERTG} )) -gt 0 ]] && [[ ${PERCENT_PERTG} -le ${MISSING_THRESHOLD} ]] ; then
+             if [[ ${FILLGAPS_FLAG} != 0 ]] && [[ ${PERCENT_PERTG} -le ${MISSING_THRESHOLD} ]] && [[ ${PERCENT_PERTG} -ge 0 ]]; then
+                cdo infon $NCOBS_OUTFILE | grep "sossheig" > ${ANA_WORKDIR}/${O_STZ}_infon.txt
+                cdo infon qf_${O_STZ}.nc | grep "sossheig_qf" > ${ANA_WORKDIR}/${O_STZ}_infonqf.txt
+                #cdo infon posqf_${O_STZ}.nc | grep "sossheig_posqf" > ${ANA_WORKDIR}/${O_STZ}_infonposqf.txt 
+                rm qf_${O_STZ}.nc
+                #rm posqf_${O_STZ}.nc
+
+                # Count nan and add the number to gaps num
+                TOT_ININAN=$( grep -c "nan" ${ANA_WORKDIR}/${O_STZ}_infon.txt | cut -f 1 -d" ")
+                TOT_GAPNAN=$(( ((${FOUNDNOTFOUND_NUM}*24)-${TOT_FOUND_PERTG}+${TOT_ININAN})*100/(${FOUNDNOTFOUND_NUM}*24) | bc -l ))
+                echo "NAN ${O_STZ} ${TOT_GAPNAN}%" | cut -f 8 -d"/" | sed -e "s/_obs.nc//g" >> ${ANA_WORKDIR}/${MISSING_PERC_FILENAME}
+
+                # If there are gaps fill them...
+                if [[ $(( (${FOUNDNOTFOUND_NUM}*24)-${TOT_FOUND_PERTG} )) -gt 0 ]]; then
+
+                   mv $NCOBS_OUTFILE ${NCOBS_OUTFILE}_gap.nc
+
+                   # Create the template from the fist timestep and fill it with nan
+                   cdo seltimestep,1 ${NCOBS_OUTFILE}_gap.nc record_template.nc
+                   cdo setrtomiss,-200,200 record_template.nc record_nantemp.nc
+
+                   # Loop on hours to find gaps 
+                   HOURLYGAP_IDX=${ANA_STARTDATE}00
+                   while [[ ${HOURLYGAP_IDX} -le ${ANA_ENDDATE}23 ]]; do
+                      IF_HH_FOUND=$( grep -c "${HOURLYGAP_IDX:0:4}-${HOURLYGAP_IDX:4:2}-${HOURLYGAP_IDX:6:2} ${HOURLYGAP_IDX:8:2}:" ${ANA_WORKDIR}/${O_STZ}_infon.txt ) || IF_HH_FOUND=0
+                         if [[ ${IF_HH_FOUND} == 0 ]]; then
+                            echo "MISSING TIME-STEP: ${HOURLYGAP_IDX}"
+                            # Create the time step from template record
+                            cdo settaxis,${HOURLYGAP_IDX:0:4}-${HOURLYGAP_IDX:4:2}-${HOURLYGAP_IDX:6:2},${HOURLYGAP_IDX:8:2}:30:00 record_nantemp.nc gap_obs_${HOURLYGAP_IDX}.nc
+                         fi
+                   HOURLYGAP_IDX=$(date -u -d "${HOURLYGAP_IDX:0:8} ${HOURLYGAP_IDX:8:2}  1 hour" +%Y%m%d%H )
+                   done               
+                   cdo mergetime ${NCOBS_OUTFILE}_gap.nc gap_obs_*.nc nonnan.nc
+                   # Clean workdir
+                   rm gap_obs_*.nc
+                   rm ${NCOBS_OUTFILE}_gap.nc
+                   rm record_template.nc
+                   rm record_nantemp.nc
+                else
+                   mv $NCOBS_OUTFILE nonnan.nc
+                fi
+         
+                # Set missing to NaN
+                cdo setmissval,NaN nonnan.nc ${NCOBS_OUTFILE}
+
+                # Clean workdir
+                rm nonnan.nc
+
+                if [[ ${PLOTTS_FLAG} == 1 ]]; then
+                   # Sed file creation and sobstitution of parematers in the templates  
+                   GPL_FILE=${O_STZ}_plot.gpl
+                   cat << EOF > ${ANA_WORKDIR}/${GPL_FILE}
+set term pngcairo size 1700,700 font "Times-New-Roman,16"
+set output "ts_${O_STZ}_${ANA_STARTDATE:0:8}_${ANA_ENDDATE:0:8}.png"
+set title "${O_STZ} data from ${ANA_STARTDATE:0:8} to ${ANA_ENDDATE:0:8}"
+set xlabel "Date"
+set xdata time
+set timefmt "%Y-%m-%d %H:%M:%S"
+set xrange ["${ANA_STARTDATE:0:4}-${ANA_STARTDATE:4:2}-${ANA_STARTDATE:6:2}":"${ANA_ENDDATE:0:4}-${ANA_ENDDATE:4:2}-${ANA_ENDDATE:6:2}"]
+set format x "%d/%m/%Y"
+set ylabel "Sea Level [cm]"
+set grid
+set key Left
+set datafile missing "nan"
+plot '${O_STZ}_infon.txt' using 3:9 with line lw 3 lt rgb '#1f77b4' title "${O_STZ} OBS"
+EOF
+                   gnuplot < ${ANA_WORKDIR}/${GPL_FILE} || echo "Problem with plot ts_${O_STZ}_${ANA_STARTDATE:0:8}_${ANA_ENDDATE:0:8}.png.. Why?"
+                   #rm ${ANA_WORKDIR}/${GPL_FILE}
+ 
+                   # qf Sed file creation and sobstitution of parematers in the templates  
+                   GPLQF_FILE=${O_STZ}_qfplot.gpl
+                   cat << EOF > ${ANA_WORKDIR}/${GPLQF_FILE}
+set term pngcairo size 1700,700 font "Times-New-Roman,16"
+set output "ts_${O_STZ}_${ANA_STARTDATE:0:8}_${ANA_ENDDATE:0:8}.png"
+set multiplot layout 2,1 title "${O_STZ} data from ${ANA_STARTDATE:0:8} to ${ANA_ENDDATE:0:8}"
+set xlabel "Date"
+set xdata time
+set timefmt "%Y-%m-%d %H:%M:%S"
+set xrange ["${ANA_STARTDATE:0:4}-${ANA_STARTDATE:4:2}-${ANA_STARTDATE:6:2}":"${ANA_ENDDATE:0:4}-${ANA_ENDDATE:4:2}-${ANA_ENDDATE:6:2}"]
+set format x "%d/%m/%Y"
+set grid
+set key Left
+set datafile missing "nan"
+set ylabel "Sea Level [cm]"
+plot '${O_STZ}_infon.txt' using 3:9 with line lw 3 lt rgb '#1f77b4' title "${O_STZ} OBS"
+set ylabel "Quality flag"
+set yrange ["-1":"10"]
+set ytics -1.0,1.0,10.0
+plot '${O_STZ}_infonqf.txt' using 3:9 with line lw 3 lt rgb '#d62728' title "${O_STZ} OBS QF" #, '${O_STZ}_infonposqf.txt' using 3:9 with line lw 3 lt rgb '#ff7f0e' title "${O_STZ} OBS POS QF"
+EOF
+
+                fi
+                gnuplot < ${ANA_WORKDIR}/${GPLQF_FILE} || echo "Problem with plot qfts_${O_STZ}_${ANA_STARTDATE:0:8}_${ANA_ENDDATE:0:8}.png.. Why?"
+                #rm ${ANA_WORKDIR}/${GPLQF_FILE}
+
+             elif [[ ${PERCENT_PERTG} -gt ${MISSING_THRESHOLD} ]] || [[ ${PERCENT_PERTG} -lt 0 ]] ; then
+                rm $NCOBS_OUTFILE 
+             elif [[ ${FILLGAPS_FLAG} == 0 ]]; then
+                  echo "I am NOT going to fill any gap in time series.."
+             fi
+
+           else
+                echo "NOT found ANY OBS file for TG: ${O_STZ}"
+                echo "NAN ${O_STZ} 100% "  >> ${ANA_WORKDIR}/${MISSING_PERC_FILENAME}
+           fi
+          fi
+         STZ_IDX=$(( $STZ_IDX + 1 ))
+         done         
+
+    IDX_VAR=$(( $IDX_VAR + 1 ))
+    done
+
+ elif [[ $OBS_FLAG == 2 ]]; then
+
+    echo "------ ISPRA OBS Extraction ------"
+
+    for O_VAR in ${OBS_VAR[@]}; do
+
+      echo "Obs Var: $O_VAR"
+
+         STZ_IDX=0
+         while [[ $STZ_IDX -lt $COO_IDX ]]; do
+         O_STZ=${COO_TS_NAME[$STZ_IDX]}
+         O_PATH=${OBS_PATH[$STZ_IDX]}
+         O_NAME=${OBS_NAME[$STZ_IDX]}
+
+         if [[ $O_PATH != "NaN" ]] && [[ $O_NAME != "NaN" ]] ; then
+
+          OBS_OUTFILE_PRE="obs"
+          OBS_OUTFILE_TPL="${OBS_OUTFILE_PRE}_%STZ%.csv"
+
+          OBS_OUTFILE=$( echo "$OBS_OUTFILE_TPL" | sed -e "s/%FIELD%/${O_VAR}/g" -e "s/%STZ%/${O_STZ}/g" )
+          echo "idNum;station;year;month;day;hour;minu;sec;value" > $OBS_OUTFILE
+           ID_LINE=1
+           ID_DATE=${ANA_STARTDATE:0:8}
+           ISPRA_ENDDATE=$( date -u -d "${ANA_ENDDATE:0:8} 1 day" +%Y%m%d )
+           LAST_HOUR_INFILE=${ANA_STARTDATE:0:8}0000
+           while [[ ${ID_DATE:0:8} -lt ${ISPRA_ENDDATE} ]]; do
+             echo "DATE: ${ID_DATE:0:8} "
+             OBS_FILE=$( echo "${O_PATH}/${O_NAME}" | sed -e "s/%YYYYMMDD%/${ID_DATE:0:8}/g" )
+             # Loop on files.csv (WARNING: sometimes the dates stored in the files differs from the date in the name of the file!!!)
+             for OBS_FOUND in $( ls $OBS_FILE ); do
+              if [[ -f $OBS_FOUND ]]; then
+                # Loop on lines in files.csv
+                while read ISPRA_LINE ; do
+                   if [[ ${ISPRA_LINE:0:1} != "G" ]]; then
+                      ISPRA_DATA=${ISPRA_LINE:0:8}
+                      ISPRA_ORA=$( echo $ISPRA_LINE | cut -f 2 -d";" )
+                      ISPRA_VAL=$( echo $ISPRA_LINE | cut -f 3 -d";" | sed -e "s/","/"."/g" )
+                      # Gaps and mv to Nan 
+                      NEXT_HOUR_INFILE=$( date -u -d "${LAST_HOUR_INFILE:0:8} ${LAST_HOUR_INFILE:8:4} 1 min" +%Y%m%d%H%M )
+                      if [[ 20${ISPRA_DATA:6:2}${ISPRA_DATA:3:2}${ISPRA_DATA:0:2}${ISPRA_ORA:0:2}${ISPRA_ORA:3:2} -gt ${NEXT_HOUR_INFILE} ]] ; then 
+                         while [[ 20${ISPRA_DATA:6:2}${ISPRA_DATA:3:2}${ISPRA_DATA:0:2}${ISPRA_ORA:0:2}${ISPRA_ORA:3:2} -gt ${NEXT_HOUR_INFILE} ]]; do
+                               echo $( echo "$ID_LINE;${O_STZ};20${NEXT_HOUR_INFILE:2:2};${NEXT_HOUR_INFILE:4:2};${NEXT_HOUR_INFILE:6:2};${NEXT_HOUR_INFILE:8:2};${NEXT_HOUR_INFILE:10:2};00;" )  >> $OBS_OUTFILE
+                               NEXT_HOUR_INFILE=$(date -u -d "${NEXT_HOUR_INFILE:0:8} ${NEXT_HOUR_INFILE:8:4} 1 min" +%Y%m%d%H%M )
+                         done
+                      fi
+                      # Values extraction
+                      if [[ 20${ISPRA_DATA:6:2}${ISPRA_DATA:3:2}${ISPRA_DATA:0:2}${ISPRA_ORA:0:2}${ISPRA_ORA:3:2} -gt ${LAST_HOUR_INFILE} ]]; then
+                         echo $( echo "$ID_LINE;${O_STZ};20${ISPRA_DATA:6:2};${ISPRA_DATA:3:2};${ISPRA_DATA:0:2};${ISPRA_ORA:0:2};${ISPRA_ORA:3:2};00;${ISPRA_VAL}" )  >> $OBS_OUTFILE
+                         LAST_HOUR_INFILE=20${ISPRA_DATA:6:2}${ISPRA_DATA:3:2}${ISPRA_DATA:0:2}${ISPRA_ORA:0:2}${ISPRA_ORA:3:2}
+                         ID_LINE=$(( $ID_LINE + 1 ))
+                      fi
+                   fi
+                done < $OBS_FOUND
+              else
+                echo "NOT found OBS file: $OBS_FILE "
+              fi
+             done
+             #
+             if [[ ${LAST_HOUR_INFILE} -lt ${ID_DATE:0:8}2359 ]] && [[ ${NEXT_HOUR_INFILE} -lt ${ID_DATE:0:8}2359 ]] ; then
+                if [[ ${LAST_HOUR_INFILE} -gt ${NEXT_HOUR_INFILE} ]]; then
+                   IDX_CORR=$( date -u -d "${LAST_HOUR_INFILE:0:8} ${LAST_HOUR_INFILE:8:4} 1 min" +%Y%m%d%H%M )
+                else
+                   IDX_CORR=$( date -u -d "${NEXT_HOUR_INFILE:0:8} ${NEXT_HOUR_INFILE:8:4} 1 min" +%Y%m%d%H%M )
+                fi  
+                while [[ ${IDX_CORR} -lt ${ID_DATE:0:8}2359 ]]; do
+                      echo $( echo "$ID_LINE;${O_STZ};20${IDX_CORR:2:2};${IDX_CORR:4:2};${IDX_CORR:6:2};${IDX_CORR:8:2};${IDX_CORR:10:2};00;" ) >> $OBS_OUTFILE
+                IDX_CORR=$(date -u -d "${IDX_CORR:0:8} ${IDX_CORR:8:4} 1 min" +%Y%m%d%H%M )
+                done
+                LAST_HOUR_INFILE=${ID_DATE:0:8}2359
+             fi
+
+           ID_DATE=$( date -u -d "${ID_DATE} 1 day" +%Y%m%d )
+           done
+          fi
+         STZ_IDX=$(( $STZ_IDX + 1 ))
+         done
+
+    done
+
+ elif [[ $OBS_FLAG == 3 ]]; then
+
+    echo "------ JRC OBS Extraction ------"
+
+    for O_VAR in ${OBS_VAR[@]}; do
+
+        echo "Obs Var: $O_VAR"
+        STZ_IDX=0
+        while [[ $STZ_IDX -lt $COO_IDX ]]; do
+         O_STZ=${COO_TS_NAME[$STZ_IDX]}
+         O_PATH=${OBS_PATH[$STZ_IDX]}
+         O_NAME=${OBS_NAME[$STZ_IDX]}
+
+         if [[ $O_PATH != "NaN" ]] && [[ $O_NAME != "NaN" ]] ; then
+
+          OBS_OUTFILE_PRE="obs"
+          OBS_OUTFILE_TPL="${OBS_OUTFILE_PRE}_%STZ%.csv"
+
+          OBS_OUTFILE=$( echo "$OBS_OUTFILE_TPL" | sed -e "s/%FIELD%/${O_VAR}/g" -e "s/%STZ%/${O_STZ}/g" )
+          echo "idNum;station;year;month;day;hour;minu;sec;value" > $OBS_OUTFILE
+          ID_LINE=1
+          JRC_STARTDATE=$( date -u -d "${ANA_STARTDATE:0:8} 0000 -60 min" +%Y%m%d%H%M)
+          JRC_ENDDATE=$( date -u -d "${ANA_ENDDATE:0:8} 2359 -60 min" +%Y%m%d%H%M)
+          # WARNING: the JRC provides a single file with all the period..
+          # WARNING: the JRC provides times in UTC not CET! 
+          OBS_FILE=$( echo "${O_PATH}/${O_NAME}")
+          # Loop on files.csv (WARNING: there is only one file!!!)
+          for OBS_FOUND in $( ls $OBS_FILE ); do
+             if [[ -f $OBS_FOUND ]]; then
+                ID_DATE=$JRC_STARTDATE
+                while [[ ${ID_DATE} -le ${JRC_ENDDATE} ]]; do
+                      echo "DATE: ${ID_DATE} "
+                      SCAD_FOUND=$( grep -c "${ID_DATE:6:2} ${ID_DATE:4:2} ${ID_DATE:0:4} ${ID_DATE:8:2}:${ID_DATE:10:2}:00" $OBS_FOUND | cut -f 1 -d" ")
+                      if [[ $SCAD_FOUND == 1 ]]; then
+                         JRC_VAL=$( grep "${ID_DATE:6:2} ${ID_DATE:4:2} ${ID_DATE:0:4} ${ID_DATE:8:2}:${ID_DATE:10:2}:00" $OBS_FOUND | cut -f 2 -d"," )
+                         CET_ID_DATE=$(date -u -d "${ID_DATE:0:8} ${ID_DATE:8:4} 60 min" +%Y%m%d%H%M)
+                         echo "$ID_LINE;${O_STZ};${CET_ID_DATE:0:4};${CET_ID_DATE:4:2};${CET_ID_DATE:6:2};${CET_ID_DATE:8:2};${CET_ID_DATE:10:2};00;${JRC_VAL}" >> $OBS_OUTFILE
+                         ID_LINE=$(( $ID_LINE + 1 ))
+                      else
+                         CET_ID_DATE=$(date -u -d "${ID_DATE:0:8} ${ID_DATE:8:4} 60 min" +%Y%m%d%H%M)
+                         echo "$ID_LINE;${O_STZ};${CET_ID_DATE:0:4};${CET_ID_DATE:4:2};${CET_ID_DATE:6:2};${CET_ID_DATE:8:2};${CET_ID_DATE:10:2};00;nan" >> $OBS_OUTFILE
+                      fi
+                ID_DATE=$(date -u -d "${ID_DATE:0:8} ${ID_DATE:8:4} 1 min" +%Y%m%d%H%M )
+                done
+             fi
+          done
+         fi
+        STZ_IDX=$(( $STZ_IDX + 1 ))
+        done
+     done                                                                                                                                                      
+  fi
+
+

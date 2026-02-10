@@ -1,0 +1,76 @@
+#!/bin/bash
+# ACG 23/06/2019
+# Script for TS extraction for single TGs
+# Ini file: p_extr.ini 
+#
+######################################################
+
+
+      ANA_INTAG=%ANA_INTAG%
+      ANA_WORKDIR=%ANA_WORKDIR%
+      TS_IDX=%TS_IDX%
+      IDX_IN=%IDX_IN%
+      VAR=%VAR%
+      COO_TS_NAME=%COO_TS_NAME%
+      EXTR_POINT_NUM=%EXTR_POINT_NUM%
+      COO_TS_LON=%COO_TS_LON%
+      COO_TS_LAT=%COO_TS_LAT%
+      EXT_INS=%EXT_INS%
+      RM_MEAN_FLAG=%RM_MEAN_FLAG%
+      INFILES_DIM=%INFILES_DIM%
+      
+      NC_TS_OUTFILE_TPL="%STZ%_mod_${ANA_INTAG}.nc"
+      NC_TS_OUTFILE=$( echo "$NC_TS_OUTFILE_TPL" | sed -e "s/%IDX%/$IDX_IN/g" -e "s/%FIELD%/${VAR}/g" -e "s/%STZ%/${COO_TS_NAME}/g" )
+
+      echo "# TS extraction from ${ANA_INTAG}" 
+      echo "# STZ: ${COO_TS_NAME}" 
+      echo "# VAR: ${VAR}" 
+
+      # Extraction
+      IDX_NC=0
+      for TSEXT in $EXT_INS; do
+
+        # nearest 4 POINTS (if land)
+        if [[ $EXTR_POINT_NUM == 4 ]]; then
+        # Point selection With land/sea mask (Nan)
+	   cdo remapdis,lon=${COO_TS_LON}/lat=${COO_TS_LAT} -setctomiss,0.0000 $TSEXT tsext_tmp_${TS_IDX}_${COO_TS_NAME}_${IDX_NC}.nc
+	   
+        # nearest sea point
+        elif [[ $EXTR_POINT_NUM == 1 ]]; then
+           LON_TOCUT=${COO_TS_LON}
+           LAT_TOCUT=${COO_TS_LAT}
+           LON_INT=$( echo $LON_TOCUT | cut -f 1 -d"." )
+           LAT_INT=$( echo $LAT_TOCUT | cut -f 1 -d"." )
+
+           if [[ ${INFILES_DIM} == "3D" ]]; then
+	      cdo remapnn,lon=${COO_TS_LON}/lat=${COO_TS_LAT} -setmisstonn -setctomiss,0.0000 -sellonlatbox,$(( ${LON_INT} - 2 )),$(( ${LON_INT} + 2 )),$(( ${LAT_INT} - 2 )),$(( ${LAT_INT} + 2 )) -select,levidx=1 $TSEXT tsext_tmp_${TS_IDX}_${COO_TS_NAME}_${IDX_NC}.nc
+           elif [[ ${INFILES_DIM} == "2D" ]]; then
+              cdo remapnn,lon=${COO_TS_LON}/lat=${COO_TS_LAT} -setmisstonn -setctomiss,0.0000 -sellonlatbox,$(( ${LON_INT} - 2 )),$(( ${LON_INT} + 2 )),$(( ${LAT_INT} - 2 )),$(( ${LAT_INT} + 2 )) $TSEXT tsext_tmp_${TS_IDX}_${COO_TS_NAME}_${IDX_NC}.nc
+           else
+              echo "INFILES_DIM must be 2D or 3D..not $INFILES_DIM !"
+              exit
+           fi
+
+        fi
+
+        IDX_NC=$(( ${IDX_NC} + 1 ))
+      done
+  
+        # Mean comp
+        if [[ ${RM_MEAN_FLAG} == 1 ]]; then
+           cdo mergetime tsext_tmp_${TS_IDX}_${COO_TS_NAME}_*.nc tsext_tmp_${TS_IDX}_${COO_TS_NAME}.nc
+           cdo timmean tsext_tmp_${TS_IDX}_${COO_TS_NAME}.nc mean_${TS_IDX}_${COO_TS_NAME}.nc
+           cdo sub tsext_tmp_${TS_IDX}_${COO_TS_NAME}.nc mean_${TS_IDX}_${COO_TS_NAME}.nc zero_${TS_IDX}_${COO_TS_NAME}.nc
+
+           cdo mergetime zero_${TS_IDX}_${COO_TS_NAME}*.nc $NC_TS_OUTFILE
+           
+           rm -v mean_${TS_IDX}_${COO_TS_NAME}.nc
+           rm -v tsext_tmp_${TS_IDX}_${COO_TS_NAME}*.nc
+           rm -v zero_${TS_IDX}_${COO_TS_NAME}.nc
+
+        elif [[ ${RM_MEAN_FLAG} == 0 ]]; then  
+           cdo mergetime tsext_tmp_${TS_IDX}_${COO_TS_NAME}_*.nc $NC_TS_OUTFILE
+
+           rm -v tsext_tmp_${TS_IDX}_${COO_TS_NAME}*.nc
+        fi
+
