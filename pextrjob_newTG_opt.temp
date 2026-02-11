@@ -73,7 +73,7 @@ set -x
         FOUND_NUM=0
         NOT_FOUND_NUM=0
 
-        if [[ !  -e ${ANA_INPATHS[$IDX_IN]}/${ANA_INFILE_2}/$ANA_INFILE ]]; then 
+        if [[  -e ${ANA_INPATHS[$IDX_IN]}/${ANA_INFILE_2}/$ANA_INFILE ]]; then 
            FOUND_NUM=$(( $FOUND_NUM + 1 ))
            if [[ ${MOD_FLAG} != 0 ]]; then
               echo "Found infile: $ANA_INFILE"

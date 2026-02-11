@@ -1,10 +1,6 @@
 #lat;lon;name;path
-38.25714111328125;22.07685089111328;Aigio;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_Aigio.nc
-35.3484001159668;25.15254020690918;Hrakleio;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_Hrakleio.nc
-35.00374984741211;25.738529205322266;Ierapetra;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_Ierapetra.nc
-38.43035125732422;22.422779083251953;Itea;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_Itea.nc
-35.41859817504883;26.92184066772461;Kasos;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_Kasos.nc
 39.790000915527344;19.90999984741211;Kerkyra;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_Kerkyra.nc
+39.210201263427734;9.114299774169922;RMN-Cagliari;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_RMN-Cagliari.nc
 37.49810028076172;15.093799591064453;RMN-Catania;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_RMN-Catania.nc
 39.08359909057617;17.137100219726562;RMN-Crotone;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_RMN-Crotone.nc
 38.784000396728516;15.193300247192383;RMN-Ginostra;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_RMN-Ginostra.nc
@@ -14,5 +10,5 @@
 37.28580093383789;13.526800155639648;RMN-PortoEmpedocle;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_RMN-PortoEmpedocle.nc
 38.121700286865234;15.648900032043457;RMN-ReggioCalabria;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_RMN-ReggioCalabria.nc
 37.50450134277344;13.076499938964844;RMN-Sciacca;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_RMN-Sciacca.nc
-38.817298889160156;15.251700401306152;RMN-Strombolicchio;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_RMN-Strombolicchio.nc
+#38.817298889160156;15.251700401306152;RMN-Strombolicchio;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_RMN-Strombolicchio.nc
 37.78142166137695;20.90519905090332;Zakynthos;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_Zakynthos.nc

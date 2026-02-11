@@ -1,0 +1,174 @@
+import xarray as xr
+from pathlib import Path
+import pandas as pd
+
+# ==========================
+# INPUT UTENTE
+# ==========================
+# Old (all dates in a single file) or new (1 file per day) archive
+archive = "new"         
+# Name of the event 
+event_name = "harry"    
+
+# --- OLD archive ---
+data_dir = Path("/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/")
+# --- NEW archive (giornaliero) ---
+new_archive_dir = Path("/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/latest_evalid_EIS_202311/")
+new_output_dir  = Path("./concatenated_new_files/")
+
+output_csv = Path(f"TGs_{event_name}.coo")
+
+# ---------------------------
+# Dates based on the event name
+# ---------------------------
+
+# Importo il database degli eventi
+from events_db import events
+
+if event_name not in events:
+    sys.exit(f"UNKNOWN Event '{event_name}'! Define it in the event dictionary.")
+
+event_start_str, event_end_str, box = events[event_name]
+
+event_start = pd.Timestamp(event_start_str + " 00:00:00", tz="UTC")
+event_end   = pd.Timestamp(event_end_str   + " 23:59:59", tz="UTC")
+
+# Period of the analysis (defined as -30 / +10 wrt the event)
+interval_start = event_start - pd.Timedelta(days=30)
+interval_end   = event_end + pd.Timedelta(days=10)
+
+t_start_input = pd.to_datetime(interval_start)
+t_end_input   = pd.to_datetime(interval_end)
+
+lat_min, lat_max, lon_min, lon_max = box
+
+print(f"\nEvento: {event_name}")
+print(f"Intervallo analisi: {t_start_input} → {t_end_input}")
+print(f"Box: lat[{lat_min},{lat_max}] lon[{lon_min},{lon_max}]")
+
+
+# ==========================================================
+# ======= CASO NEW → CONCATENAZIONE FILE GIORNALIERI ======
+# ==========================================================
+
+if archive == "new":
+
+    print("\nModalità NEW: concatenazione file giornalieri per stazione...")
+    new_output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Giorni richiesti
+    bdates = pd.date_range(
+        t_start_input.normalize(),
+        t_end_input.normalize(),
+        freq="D"
+    )
+
+    # Dizionario: nome_stazione → lista file giornalieri
+    station_files = {}
+
+    for d in bdates:
+        day_dir = new_archive_dir / f"{d:%Y%m%d}"
+
+        if not day_dir.exists():
+            continue
+
+        for f in day_dir.glob("*.nc"):
+
+            parts = f.name.replace(".nc", "").split("_")
+            name = parts[3] if len(parts) >= 4 else None
+            if name is None:
+                continue
+
+            station_files.setdefault(name, []).append(f)
+
+    if not station_files:
+        raise FileNotFoundError("Nessun file trovato nell'intervallo richiesto.")
+
+    print(f"Trovate {len(station_files)} stazioni da concatenare")
+
+    # Creazione file concatenati per ogni stazione
+    for name, files in station_files.items():
+
+        files = sorted(files)
+
+        ds_concat = xr.open_mfdataset(
+            files,
+            combine="by_coords",
+            parallel=True
+        )
+
+        out_file = new_output_dir / f"{name}_{t_start_input:%Y%m%d}_{t_end_input:%Y%m%d}.nc"
+
+        if not out_file.exists():
+            ds_concat.to_netcdf(out_file)
+            print(f"Creato {out_file.name}")
+        else:
+            print(f"{out_file.name} già esistente")
+
+        ds_concat.close()
+
+    # Dopo la concatenazione, lavoriamo sui nuovi file
+    data_dir = new_output_dir
+
+# ==========================================================
+# ================== LOOP SUI FILE =========================
+# ==========================================================
+
+nc_files = sorted(data_dir.glob("*.nc"))
+selected = []
+
+for nc_file in nc_files:
+    try:
+        ds = xr.open_dataset(nc_file, decode_times=True)
+
+        lat = ds.coords.get("LATITUDE", None)
+        lon = ds.coords.get("LONGITUDE", None)
+
+        if lat is None or lon is None:
+            ds.close()
+            continue
+
+        lat = float(lat.values)
+        lon = float(lon.values)
+
+        if not (lat_min <= lat <= lat_max and lon_min <= lon <= lon_max):
+            ds.close()
+            continue
+
+        if "TIME" not in ds.coords:
+            ds.close()
+            continue
+
+        time_vals = ds["TIME"].values
+        start_time = pd.to_datetime(time_vals[0])
+        end_time   = pd.to_datetime(time_vals[-1])
+
+        if not (start_time <= t_start_input and end_time >= t_end_input):
+            ds.close()
+            continue
+
+        fname = nc_file.name
+        parts = fname.replace(".nc", "").split("_")
+        name = parts[3] if len(parts) >= 4 else ""
+
+        selected.append({
+            "lat": lat,
+            "lon": lon,
+            "name": name,
+            "path": str(nc_file.resolve())
+        })
+
+        ds.close()
+
+    except Exception as e:
+        print(f"Errore su {nc_file.name}: {e}")
+
+
+# ==========================================================
+# ================= SALVA CSV FINALE =======================
+# ==========================================================
+
+df = pd.DataFrame(selected, columns=["lat", "lon", "name", "path"])
+df.to_csv(output_csv, index=False, sep=";")
+
+print(f"\nCreato {output_csv} con {len(df)} file selezionati")

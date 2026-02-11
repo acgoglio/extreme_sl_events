@@ -31,62 +31,20 @@ output_dir = '/work/cmcc/ag15419/surge/'+event_name+'/plots/'
 # ---------------------------
 # Dates based on the event name
 # ---------------------------
+# Importo il database degli eventi 
+from events_db import events
 
-if event_name == 'gloria':
+if event_name not in events:
+    sys.exit(f"UNKNOWN Event '{event_name}'! Define it in the event dictionary.")
 
-   # Event 
-   event_start = pd.Timestamp('2020-01-17 00:00:00', tz='UTC')
-   event_end   = pd.Timestamp('2020-01-23 23:59:59', tz='UTC')
-   
-elif event_name == 'ianos':
+event_start_str, event_end_str, box = events[event_name]
 
-   # Event
-   event_start = pd.Timestamp('2020-09-15 00:00:00', tz='UTC')
-   event_end   = pd.Timestamp('2020-09-21 23:59:59', tz='UTC')
+event_start = pd.Timestamp(event_start_str + " 00:00:00", tz="UTC")
+event_end   = pd.Timestamp(event_end_str   + " 23:59:59", tz="UTC")
 
-elif event_name == 'apollo':
-
-   # Event
-   event_start = pd.Timestamp('2021-10-23 00:00:00', tz='UTC')
-   event_end   = pd.Timestamp('2021-11-02 23:59:59', tz='UTC')
-
-elif event_name == 'blas':
-
-   # Event
-   event_start = pd.Timestamp('2021-11-02 00:00:00', tz='UTC')
-   event_end   = pd.Timestamp('2021-11-18 23:59:59', tz='UTC')
-
-elif event_name == 'vaa22':
-
-   # Event
-   event_start = pd.Timestamp('2022-11-22 00:00:00', tz='UTC')
-   event_end   = pd.Timestamp('2022-11-22 23:59:59', tz='UTC')
-
-elif event_name == 'helios':
-
-   # Event
-   event_start = pd.Timestamp('2023-02-09 00:00:00', tz='UTC')
-   event_end   = pd.Timestamp('2023-02-11 23:59:59', tz='UTC')
-
-elif event_name == 'daniel':
-
-   # Event
-   event_start = pd.Timestamp('2023-09-04 00:00:00', tz='UTC')
-   event_end   = pd.Timestamp('2023-09-11 23:59:59', tz='UTC')
-
-elif event_name == 'harry':
-
-   # Event
-   event_start = pd.Timestamp('2026-01-19 00:00:00', tz='UTC')
-   event_end   = pd.Timestamp('2026-01-21 23:59:59', tz='UTC')
-
-   # Period covered by analysis time-series
-   #xlim_start = pd.Timestamp('2025-12-23 00:00:00', tz='UTC')
-   #xlim_end   = pd.Timestamp('2023-01-23 23:59:59', tz='UTC')
-
-else:
-   sys.exit('UNKNOWN Event! Define the dates in the script and relaunch it!')
-
+print(f"\nEvent: {event_name}")
+print(f"Start: {event_start}")
+print(f"End  : {event_end}")
 
 # -------------------------------   
 # PERIOD of the analysis defined as -30 / +10 wrt the event
