@@ -17,16 +17,16 @@ mpl.use('Agg')
 # VARIABILI GLOBALI
 # ------------------------------
 # Event name
-event_name='blas'
+event_name=''
 
 # File of tide-gauges location
 coo_file = 'TGs_'+event_name+'.coo'
 
 # MedFS time-series path:
-medfs_dir = '/work/cmcc/ag15419/'+event_name+'/mod_extr/'
+medfs_dir = '/work/cmcc/ag15419/surge/'+event_name+'/mod_extr/'
 
 # Output directory:
-output_dir = '/work/cmcc/ag15419/'+event_name+'/plots/'
+output_dir = '/work/cmcc/ag15419/surge/'+event_name+'/plots/'
 
 # ---------------------------
 # Dates based on the event name
@@ -38,37 +38,11 @@ if event_name == 'gloria':
    event_start = pd.Timestamp('2020-01-17 00:00:00', tz='UTC')
    event_end   = pd.Timestamp('2020-01-23 23:59:59', tz='UTC')
    
-   # Forecast and Analysis plots limits
-   xlim_start = pd.Timestamp('2020-01-01 00:00:00', tz='UTC')
-   xlim_end   = pd.Timestamp('2020-02-01 23:59:59', tz='UTC')
-   xlim_fc_start = pd.Timestamp('2020-01-15 00:00:00', tz='UTC')
-   xlim_fc_end   = pd.Timestamp('2020-02-01 23:59:59', tz='UTC')
-   
-   # SURGE: max wrt base period
-   base_start  = pd.Timestamp('2020-01-13 00:00:00', tz='UTC')
-   base_end    = pd.Timestamp('2020-01-16 23:59:59', tz='UTC')
-   
-   # Bulletin dates 
-   bdates = pd.date_range('2020-01-06','2020-01-22', freq='D')
-
 elif event_name == 'ianos':
 
    # Event
    event_start = pd.Timestamp('2020-09-15 00:00:00', tz='UTC')
    event_end   = pd.Timestamp('2020-09-21 23:59:59', tz='UTC')
-
-   # Forecast and Analysis plots limits
-   xlim_start = pd.Timestamp('2020-09-01 00:00:00', tz='UTC')
-   xlim_end   = pd.Timestamp('2020-10-01 23:59:59', tz='UTC')
-   xlim_fc_start = pd.Timestamp('2020-09-10 00:00:00', tz='UTC')
-   xlim_fc_end   = pd.Timestamp('2020-09-25 23:59:59', tz='UTC')
-
-   # SURGE: max wrt base period
-   base_start  = pd.Timestamp('2020-09-10 00:00:00', tz='UTC')
-   base_end    = pd.Timestamp('2020-09-14 23:59:59', tz='UTC')
-
-   # Bulletin dates
-   bdates = pd.date_range('2020-09-06','2020-10-20', freq='D')
 
 elif event_name == 'apollo':
 
@@ -76,37 +50,11 @@ elif event_name == 'apollo':
    event_start = pd.Timestamp('2021-10-23 00:00:00', tz='UTC')
    event_end   = pd.Timestamp('2021-11-02 23:59:59', tz='UTC')
 
-   # Forecast and Analysis plots limits
-   xlim_start = pd.Timestamp('2021-10-05 00:00:00', tz='UTC')
-   xlim_end   = pd.Timestamp('2021-11-05 23:59:59', tz='UTC')
-   xlim_fc_start = pd.Timestamp('2021-10-18 00:00:00', tz='UTC')
-   xlim_fc_end   = pd.Timestamp('2021-11-05 23:59:59', tz='UTC')
-
-   # SURGE: max wrt base period
-   base_start  = pd.Timestamp('2021-10-19 00:00:00', tz='UTC')
-   base_end    = pd.Timestamp('2021-10-22 23:59:59', tz='UTC')
-
-   # Bulletin dates
-   bdates = pd.date_range('2021-10-14','2023-11-01', freq='D')
-
 elif event_name == 'blas':
 
    # Event
    event_start = pd.Timestamp('2021-11-02 00:00:00', tz='UTC')
    event_end   = pd.Timestamp('2021-11-18 23:59:59', tz='UTC')
-
-   # Forecast and Analysis plots limits
-   xlim_start = pd.Timestamp('2021-10-25 00:00:00', tz='UTC')
-   xlim_end   = pd.Timestamp('2021-11-30 23:59:59', tz='UTC')
-   xlim_fc_start = pd.Timestamp('2021-10-31 00:00:00', tz='UTC')
-   xlim_fc_end   = pd.Timestamp('2021-11-20 23:59:59', tz='UTC')
-
-   # SURGE: max wrt base period
-   base_start  = pd.Timestamp('2021-10-28 00:00:00', tz='UTC')
-   base_end    = pd.Timestamp('2021-10-31 23:59:59', tz='UTC')
-
-   # Bulletin dates
-   bdates = pd.date_range('2021-10-23','2021-11-17', freq='D')
 
 elif event_name == 'vaa22':
 
@@ -114,18 +62,11 @@ elif event_name == 'vaa22':
    event_start = pd.Timestamp('2022-11-22 00:00:00', tz='UTC')
    event_end   = pd.Timestamp('2022-11-22 23:59:59', tz='UTC')
 
-   # Forecast and Analysis plots limits
-   xlim_start = pd.Timestamp('2022-11-01 00:00:00', tz='UTC')
-   xlim_end   = pd.Timestamp('2022-12-01 23:59:59', tz='UTC')
-   xlim_fc_start = pd.Timestamp('2022-11-20 00:00:00', tz='UTC')
-   xlim_fc_end   = pd.Timestamp('2022-11-25 23:59:59', tz='UTC')
+elif event_name == 'helios':
 
-   # SURGE: max wrt base period
-   base_start  = pd.Timestamp('2022-11-17 00:00:00', tz='UTC')
-   base_end    = pd.Timestamp('2022-11-20 23:59:59', tz='UTC')
-
-   # Bulletin dates
-   bdates = pd.date_range('2022-11-13','2021-11-21', freq='D')
+   # Event
+   event_start = pd.Timestamp('2023-02-09 00:00:00', tz='UTC')
+   event_end   = pd.Timestamp('2023-02-11 23:59:59', tz='UTC')
 
 elif event_name == 'daniel':
 
@@ -133,46 +74,47 @@ elif event_name == 'daniel':
    event_start = pd.Timestamp('2023-09-04 00:00:00', tz='UTC')
    event_end   = pd.Timestamp('2023-09-11 23:59:59', tz='UTC')
 
-   # Forecast and Analysis plots limits
-   xlim_start = pd.Timestamp('2022-11-01 00:00:00', tz='UTC')
-   xlim_end   = pd.Timestamp('2022-12-01 23:59:59', tz='UTC')
-   xlim_fc_start = pd.Timestamp('2022-11-20 00:00:00', tz='UTC')
-   xlim_fc_end   = pd.Timestamp('2022-11-25 23:59:59', tz='UTC')
-
-   # SURGE: max wrt base period
-   base_start  = pd.Timestamp('2022-11-17 00:00:00', tz='UTC')
-   base_end    = pd.Timestamp('2022-11-20 23:59:59', tz='UTC')
-
-   # Bulletin dates
-   bdates = pd.date_range('2022-11-13','2021-11-21', freq='D')
-
 elif event_name == 'harry':
 
    # Event
    event_start = pd.Timestamp('2026-01-19 00:00:00', tz='UTC')
    event_end   = pd.Timestamp('2026-01-21 23:59:59', tz='UTC')
 
-   # Forecast and Analysis plots limits
-   xlim_start = pd.Timestamp('2025-12-23 00:00:00', tz='UTC')
-   xlim_end   = pd.Timestamp('2023-01-23 23:59:59', tz='UTC')
-   xlim_fc_start = pd.Timestamp('2026-01-14 00:00:00', tz='UTC')
-   xlim_fc_end   = pd.Timestamp('2026-01-22 23:59:59', tz='UTC')
-
-   # SURGE: max wrt base period
-   base_start  = pd.Timestamp('2026-01-14 00:00:00', tz='UTC')
-   base_end    = pd.Timestamp('2026-01-19 23:59:59', tz='UTC')
-
-   # Bulletin dates
-   bdates = pd.date_range('2026-01-11','2026-01-21', freq='D')
+   # Period covered by analysis time-series
+   #xlim_start = pd.Timestamp('2025-12-23 00:00:00', tz='UTC')
+   #xlim_end   = pd.Timestamp('2023-01-23 23:59:59', tz='UTC')
 
 else:
    sys.exit('UNKNOWN Event! Define the dates in the script and relaunch it!')
-   
 
-# -------------------------------
-# Tides bands
+
+# -------------------------------   
+# PERIOD of the analysis defined as -30 / +10 wrt the event
+# SURGE reference period (mean on all avalaible days before the event )
+# BULLTETIN period (forecast to be included in the analysis)
+# FORECAST plot limits (-3 to +3 days wrt the event range)
+# TIDAL diurnal and semi-diurnal bands (for detiding)
 # -------------------------------
 
+# Period of the analysis (defined as -30 / +10 wrt the event)
+xlim_start = event_start - pd.Timedelta(days=30)
+xlim_end   = event_end + pd.Timedelta(days=10)
+
+# Surge reference
+base_start  = xlim_start
+base_end    = event_start - pd.Timedelta(days=1)
+
+# Bulletins covering the event period
+b_start_date = event_start - pd.Timedelta(days=10)  # 10 days before the event
+b_end_date   = event_end - pd.Timedelta(days=1)     # 1 day before the event
+# bulletin range
+bdates = pd.date_range(start=b_start_date, end=b_end_date, freq='D')
+
+# Forecast plots range
+xlim_fc_start = event_start - pd.Timedelta(days=3)
+xlim_fc_end   = event_end + pd.Timedelta(days=3) - pd.Timedelta(seconds=1) 
+
+# Tidal diurnal and semi-diurnal bands
 semid_tides_band = [11.2, 17.0]
 diurnal_tides_band = [21.0, 32.0]
 
@@ -192,28 +134,8 @@ def read_coo_file(coo_file):
     return df
 
 
-from pathlib import Path
-import pandas as pd
-
 def read_obs_csv(obs_folder, hourly_mean=True, interpolate_gaps=True, verbose=True):
-    """
-    Legge file CSV di osservazioni di sea-level e restituisce dataframe con indice temporale.
-    
-    Parametri:
-    -----------
-    obs_folder : str o Path
-        Cartella contenente i CSV o singolo file CSV.
-    hourly_mean : bool
-        Se True, resample a frequenza oraria.
-    interpolate_gaps : bool
-        Se True, interpolazione lineare delle ore mancanti dopo il resample.
-    verbose : bool
-        Se True, stampa info diagnostica.
 
-    Ritorna:
-    --------
-    dict di DataFrame se più file, altrimenti singolo DataFrame.
-    """
     obs_folder = Path(obs_folder)
     obs_files = [obs_folder] if obs_folder.is_file() else list(obs_folder.glob('*.csv'))
     obs_dict = {}
@@ -292,30 +214,6 @@ def read_obs_csv(obs_folder, hourly_mean=True, interpolate_gaps=True, verbose=Tr
     return obs_dict
 
 def read_obs_netcdf(obs_folder,hourly_mean=True,interpolate_gaps=True,verbose=True):
-    """
-    Legge file NetCDF di osservazioni tide-gauge e restituisce DataFrame
-    con indice temporale (UTC).
-
-    Atteso nel NetCDF:
-    -------------------
-    TIME : asse temporale
-    SLEV : sea level osservato
-
-    Parametri:
-    -----------
-    obs_folder : str o Path
-        Cartella contenente i NetCDF o singolo file NetCDF.
-    hourly_mean : bool
-        Se True, resample a frequenza oraria.
-    interpolate_gaps : bool
-        Se True, interpolazione lineare dei gap temporali.
-    verbose : bool
-        Se True, stampa info diagnostica.
-
-    Ritorna:
-    --------
-    dict di DataFrame se più file, altrimenti singolo DataFrame.
-    """
 
     obs_folder = Path(obs_folder)
     obs_files = [obs_folder] if obs_folder.is_file() else sorted(obs_folder.glob("*.nc"))
@@ -488,9 +386,6 @@ def plot_tg(name, obs, mod, outdir):
 
 
 def plot_tg_map(df_coo, outdir, figsize=(20,7)):
-    """
-    Mappa con tutte le TG sul Mediterraneo.
-    """
     fig = plt.figure(figsize=figsize)
     plt.rcParams['font.size'] = 20
     ax = plt.axes(projection=ccrs.PlateCarree())
@@ -516,9 +411,6 @@ def plot_tg_map(df_coo, outdir, figsize=(20,7)):
     plt.close()
     
 def plot_tg_map_single(df_coo, tg_name, outdir, figsize=(10,3)):
-        """
-        Mappa per slide: tutto il Mediterraneo, ma evidenzia solo la TG selezionata.
-        """
         row = df_coo[df_coo['name'] == tg_name]
         if row.empty:
             print(f"[MAP WARNING] TG {tg_name} non trovata")
@@ -742,14 +634,8 @@ def combine_all_plots(df_coo, outdir):
             print(f"Combined plot saved: {fig_file}")
     
     
-def compute_detided_event_anomaly(df,
-                                      event_start, event_end,
-                                      base_start, base_end,
-                                      var='ssh_obs_detided'):
-        """
-        Calcola:
-        max(detided durante evento) - media(detided periodo di riferimento)
-        """
+def compute_detided_event_anomaly(df,event_start, event_end,base_start, base_end,var='ssh_obs_detided'):
+
         df_event = df.loc[event_start:event_end]
         df_base  = df.loc[base_start:base_end]
     
@@ -763,35 +649,7 @@ def compute_detided_event_anomaly(df,
     
         return max_event - mean_base
 
-def plot_detided_event_anomaly_map(
-    df_tg_summary,
-    outdir,
-    value_col,
-    title,
-    outfile,
-    bounds=None,
-    cmap_name='plasma_r'
-):
-    """
-    Plot mappa Mediterraneo con anomalia di surge detided sulle TG.
-
-    Parameters
-    ----------
-    df_tg_summary : pandas.DataFrame
-        Deve contenere colonne: 'lon', 'lat', value_col
-    outdir : Path
-        Directory di output
-    value_col : str
-        Nome della colonna da usare come colore (es. 'delta_detided')
-    title : str
-        Titolo del plot
-    outfile : str
-        Nome del file PNG in output
-    bounds : list, optional
-        Limiti dei bin per colorbar discreta
-    cmap_name : str
-        Nome della colormap matplotlib
-    """
+def plot_detided_event_anomaly_map(df_tg_summary,outdir,value_col,title,outfile,bounds=None,cmap_name='plasma_r'):
 
     if bounds is None:
         bounds = [0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7] #, 0.85, 0.9, 0.95, 1.0]
@@ -875,36 +733,10 @@ def main():
             try:
                 #obs = read_obs_csv(obs_path)
                 obs = read_obs_netcdf(obs_path)
-                # -------------------------
-                # Controllo resample e NaN
-                # -------------------------
-                #print(f"Controllo ultimi valori OBS per {name}:")
-                #print(obs.tail(20))
-                #print("NaN presenti nelle ultime 20 righe?", obs.isna().tail(20).any())
     
             except Exception as e:
                 print(f"Obs error: {e}")
                 continue
-    
-            # -------------------------------
-            # CONTROLLO QUALITA' DATI OBS
-            # -------------------------------
-            #print(f"\nControllo dati OBS per {name}:")
-            # 
-            ## leggere dati raw senza resample
-            ##df_raw = read_obs_csv(obs_path, hourly_mean=False)
-            #df_raw = read_obs_netcdf(obs_path, hourly_mean=False)
-            #print("Numero campioni totali:", len(df_raw))
-            #print("Duplicati timestamps:", df_raw.index.duplicated().sum())
-            #
-            ## dopo il resample orario
-            #print("Numero campioni dopo resample orario:", len(obs))
-            #print("Conteggio per ora (prime 10):")
-            #print(obs['ssh_obs'].resample('1H').count().head(10))  # prime 10 ore come esempio
-            #
-            # controllo valori nell'intervallo dell'evento
-            #df_event = obs.loc[event_start:event_end]
-            #print(f"Numero valori validi nell'evento ({event_start} -> {event_end}): {df_event['ssh_obs'].notna().sum()}")
     
             # MODEL
             nc_file = mod_dir / f'{name}_mod_MedFS_analysis.nc'
