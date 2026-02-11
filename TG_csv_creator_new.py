@@ -69,12 +69,10 @@ if archive == "new":
 
     for d in bdates:
         day_dir = new_archive_dir / f"{d:%Y%m%d}"
-
         if not day_dir.exists():
             continue
 
         for f in day_dir.glob("*.nc"):
-
             parts = f.name.replace(".nc", "").split("_")
             name = parts[3] if len(parts) >= 4 else None
             if name is None:
@@ -89,10 +87,7 @@ if archive == "new":
 
     # Creazione file concatenati per ogni stazione
     for name, files in station_files.items():
-
         files = sorted(files)
-
-        # Lista dei dataset da concatenare
         datasets = []
 
         for f in files:
@@ -104,7 +99,12 @@ if archive == "new":
 
             # Accetta il file solo se contiene SLEV
             if 'SLEV' in ds.data_vars:
-                ds = ds[['SLEV']]  # seleziona solo SLEV
+                # Seleziona SLEV + LATITUDE e LONGITUDE
+                vars_to_keep = ['SLEV']
+                for coord in ['LATITUDE', 'LONGITUDE']:
+                    if coord in ds.coords or coord in ds.data_vars:
+                        vars_to_keep.append(coord)
+                ds = ds[vars_to_keep]
                 datasets.append(ds)
             else:
                 ds.close()  # chiudi subito se non c'è SLEV
@@ -137,8 +137,6 @@ if archive == "new":
 
     # Dopo la concatenazione, lavoriamo sui nuovi file
     data_dir = new_output_dir
-
-
 
 # ==========================================================
 # ================== LOOP SUI FILE =========================
@@ -179,7 +177,10 @@ for nc_file in nc_files:
 
         fname = nc_file.name
         parts = fname.replace(".nc", "").split("_")
-        name = parts[3] if len(parts) >= 4 else ""
+        if archive == "old":
+           name = parts[3] if len(parts) >= 4 else ""
+        else:  # archive == "new"
+           name = parts[0]
 
         selected.append({
             "lat": lat,
