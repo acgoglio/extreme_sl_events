@@ -22,6 +22,9 @@ set -x
   SRC_DIR=%SRC_DIR%
   source ${SRC_DIR}/p_extr.ini
 
+ANA_STARTDATE=$(date -d "$EVENT_STARTDATE -30 days" +%Y%m%d)
+ANA_ENDDATE=$(date -d "$EVENT_ENDDATE +10 days" +%Y%m%d)
+
 # Read and check infos (work dir, file names, archive dir, etc.)
 
   # Workdir check

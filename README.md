@@ -1,4 +1,7 @@
 # harry_cyclon
+INPUT
+events_db.py -> database of the events to be analyzed including events name, ini and end dates, and location 
+
 # OBS
 obs_analysis.py -> to look into TGs files 
 TG_csv_creator.py -> to create the TG csv with the list of TGs to be used
@@ -11,4 +14,5 @@ pextr_TGs_job.temp -> job for model extraction
 
 # COMPARISON, PLOTTING, ETC
 MedFS_Vs_TG.py
+
 

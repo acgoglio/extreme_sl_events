@@ -14,7 +14,7 @@ event_name = "harry"
 data_dir = Path("/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/")
 # --- NEW archive (giornaliero) ---
 new_archive_dir = Path("/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/latest_evalid_EIS_202311/")
-new_output_dir  = Path("./concatenated_new_files/")
+new_output_dir  = Path(f"/work/cmcc/ag15419/surge/{event_name}/obs/")
 
 output_csv = Path(f"TGs_{event_name}.coo")
 
@@ -46,7 +46,6 @@ print(f"\nEvento: {event_name}")
 print(f"Intervallo analisi: {t_start_input} → {t_end_input}")
 print(f"Box: lat[{lat_min},{lat_max}] lon[{lon_min},{lon_max}]")
 
-
 # ==========================================================
 # ======= CASO NEW → CONCATENAZIONE FILE GIORNALIERI ======
 # ==========================================================
@@ -54,6 +53,8 @@ print(f"Box: lat[{lat_min},{lat_max}] lon[{lon_min},{lon_max}]")
 if archive == "new":
 
     print("\nModalità NEW: concatenazione file giornalieri per stazione...")
+
+    # Creazione cartella di output se non esiste
     new_output_dir.mkdir(parents=True, exist_ok=True)
 
     # Giorni richiesti
@@ -91,24 +92,53 @@ if archive == "new":
 
         files = sorted(files)
 
-        ds_concat = xr.open_mfdataset(
-            files,
-            combine="by_coords",
-            parallel=True
-        )
+        # Lista dei dataset da concatenare
+        datasets = []
 
-        out_file = new_output_dir / f"{name}_{t_start_input:%Y%m%d}_{t_end_input:%Y%m%d}.nc"
+        for f in files:
+            ds = xr.open_dataset(f, decode_cf=False)
 
-        if not out_file.exists():
-            ds_concat.to_netcdf(out_file)
-            print(f"Creato {out_file.name}")
+            # Taglio primo livello verticale se presente
+            if 'DEPTH' in ds.dims:
+                ds = ds.isel(DEPTH=0)
+
+            # Accetta il file solo se contiene SLEV
+            if 'SLEV' in ds.data_vars:
+                ds = ds[['SLEV']]  # seleziona solo SLEV
+                datasets.append(ds)
+            else:
+                ds.close()  # chiudi subito se non c'è SLEV
+
+        # Concatenazione lungo TIME, se c'è almeno un dataset valido
+        if datasets:
+            ds_concat = xr.concat(datasets, dim='TIME')
+
+            # File di output
+            out_file = new_output_dir / f"{name}_{t_start_input:%Y%m%d}_{t_end_input:%Y%m%d}.nc"
+
+            if not out_file.exists():
+                # Pulizia attributi globali e delle variabili
+                ds_concat.attrs = {}
+                for v in ds_concat.data_vars:
+                    ds_concat[v].attrs = {}
+
+                ds_concat.to_netcdf(out_file)
+                print(f"Creato {out_file.name}")
+            else:
+                print(f"{out_file.name} già esistente")
+
+            ds_concat.close()
+
+            # Chiudi anche i dataset originali
+            for ds in datasets:
+                ds.close()
         else:
-            print(f"{out_file.name} già esistente")
-
-        ds_concat.close()
+            print(f"Nessun file valido con SLEV per la stazione {name}. File saltato.")
 
     # Dopo la concatenazione, lavoriamo sui nuovi file
     data_dir = new_output_dir
+
+
 
 # ==========================================================
 # ================== LOOP SUI FILE =========================
