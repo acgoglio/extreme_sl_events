@@ -1,4 +1,5 @@
 import xarray as xr
+import numpy as np
 from pathlib import Path
 import pandas as pd
 
@@ -25,6 +26,7 @@ output_csv = Path(f"TGs_{event_name}.coo")
 # Importo il database degli eventi
 from events_db import events
 
+# Funzione poer la lettura delle coordinate
 if event_name not in events:
     sys.exit(f"UNKNOWN Event '{event_name}'! Define it in the event dictionary.")
 
@@ -45,6 +47,33 @@ lat_min, lat_max, lon_min, lon_max = box
 print(f"\nEvento: {event_name}")
 print(f"Intervallo analisi: {t_start_input} → {t_end_input}")
 print(f"Box: lat[{lat_min},{lat_max}] lon[{lon_min},{lon_max}]")
+
+def get_lat_lon(ds):
+    # LAT
+    if 'LATITUDE' in ds.coords:
+        lat = float(ds['LATITUDE'].values)
+    elif 'LATITUDE' in ds.data_vars:
+        val = ds['LATITUDE']
+        if hasattr(val, 'values'):
+            lat = float(val.values[0]) if val.size > 0 else None
+        else:
+            lat = float(val)
+    else:
+        lat = None
+
+    # LON
+    if 'LONGITUDE' in ds.coords:
+        lon = float(ds['LONGITUDE'].values)
+    elif 'LONGITUDE' in ds.data_vars:
+        val = ds['LONGITUDE']
+        if hasattr(val, 'values'):
+            lon = float(val.values[0]) if val.size > 0 else None
+        else:
+            lon = float(val)
+    else:
+        lon = None
+
+    return lat, lon
 
 # ==========================================================
 # ======= CASO NEW → CONCATENAZIONE FILE GIORNALIERI ======
@@ -149,31 +178,33 @@ for nc_file in nc_files:
     try:
         ds = xr.open_dataset(nc_file, decode_times=True)
 
-        lat = ds.coords.get("LATITUDE", None)
-        lon = ds.coords.get("LONGITUDE", None)
-
+        # --- LAT/LON ---
+        lat, lon = get_lat_lon(ds)
         if lat is None or lon is None:
-            ds.close()
-            continue
+           print ('issues with tg coordinates!')
+           ds.close()
+           continue
 
-        lat = float(lat.values)
-        lon = float(lon.values)
+        print ('PROVA COO',lat,lon)
 
         if not (lat_min <= lat <= lat_max and lon_min <= lon <= lon_max):
             ds.close()
             continue
 
         if "TIME" not in ds.coords:
+            print ('issues with tg time!')
             ds.close()
             continue
 
         time_vals = ds["TIME"].values
-        start_time = pd.to_datetime(time_vals[0])
-        end_time   = pd.to_datetime(time_vals[-1])
+        print ('PROVA time',time_vals)
+        start_time = pd.to_datetime(time_vals[0], utc=True)
+        end_time   = pd.to_datetime(time_vals[-1], utc=True)
 
-        if not (start_time <= t_start_input and end_time >= t_end_input):
-            ds.close()
-            continue
+        # Accetta file se almeno una parte dell'intervallo rientra
+        if end_time < t_start_input or start_time > t_end_input:
+           ds.close()
+           continue
 
         fname = nc_file.name
         parts = fname.replace(".nc", "").split("_")
@@ -181,6 +212,7 @@ for nc_file in nc_files:
            name = parts[3] if len(parts) >= 4 else ""
         else:  # archive == "new"
            name = parts[0]
+        print ('PROVA name',name)
 
         selected.append({
             "lat": lat,

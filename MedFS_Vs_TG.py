@@ -17,7 +17,7 @@ mpl.use('Agg')
 # VARIABILI GLOBALI
 # ------------------------------
 # Event name
-event_name='daniel'
+event_name='helios'
 
 # File of tide-gauges location
 coo_file = 'TGs_'+event_name+'.coo'
