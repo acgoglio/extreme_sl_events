@@ -17,7 +17,7 @@ mpl.use('Agg')
 # VARIABILI GLOBALI
 # ------------------------------
 # Event name
-event_name='helios'
+event_name='harry'
 
 # File of tide-gauges location
 coo_file = 'TGs_'+event_name+'.coo'
@@ -690,7 +690,11 @@ def main():
     
             try:
                 #obs = read_obs_csv(obs_path)
-                obs = read_obs_netcdf(obs_path)
+                #obs = read_obs_netcdf(obs_path)
+                if Path(obs_path).suffix == '.csv':
+                   obs = read_obs_csv(obs_path)
+                elif Path(obs_path).suffix == '.nc':
+                   obs = read_obs_netcdf(obs_path)
     
             except Exception as e:
                 print(f"Obs error: {e}")
@@ -793,12 +797,13 @@ def main():
                     print(f"Missing forecast file: {fc_file}")
                     continue
                 df_fc = read_model_nc(fc_file)
+
                 # offset rispetto alle OBS presenti nel periodo forecast
                 mask_obs = (df_plot.index >= df_fc.index.min()) & (df_plot.index <= df_fc.index.max())
                 offset_fc = df_plot['ssh_obs'].loc[mask_obs].mean() - df_fc['ssh_mod'].mean() if mask_obs.any() else 0.0
                 df_fc['ssh_mod_offset'] = df_fc['ssh_mod'] + offset_fc
             
-                # calcolo massimo per questa forecast
+                # calcolo max per la forecast
                 df_event_fc = df_fc.loc[event_start:event_end]
                 if not df_event_fc.empty:
                     idx_max_fc = df_event_fc['ssh_mod_offset'].idxmax()
@@ -807,14 +812,11 @@ def main():
                     idx_max_fc = df_fc.index[0]
                     max_fc = df_fc['ssh_mod_offset'].max()
             
+                # taglio: tengo solo da bdate in poi
+                df_fc_cut = df_fc.loc[df_fc.index >= pd.Timestamp(bdate)]
+
                 color = cmap(norm(i))
-                plt.plot(
-                    df_fc.index,
-                    df_fc['ssh_mod_offset'],
-                    lw=2,
-                    color=color,
-                    label=f'FC {bdate:%d %b} (max {max_fc:.3f} m @ {idx_max_fc:%d/%m %H:%M})'
-                )
+                plt.plot(df_fc_cut.index,df_fc_cut['ssh_mod_offset'],lw=2,color=color,label=f'Forecast {bdate:%d %b} (max {max_fc:.3f} m @ {idx_max_fc:%d/%m %H:%M})')
             
             plt.title(f'{name}', fontsize=20)
             plt.ylabel('Sea level [m]', fontsize=20)
@@ -822,7 +824,7 @@ def main():
             plt.legend(loc='upper left', fontsize=12, framealpha=0.7)
             plt.xticks(fontsize=16, rotation=30)
             plt.yticks(fontsize=16)
-            plt.xlim(xlim_start, xlim_end)
+            plt.xlim(xlim_fc_start, xlim_fc_end)
             plt.grid()
             plt.tight_layout()
             outdir.mkdir(exist_ok=True, parents=True)
@@ -875,23 +877,26 @@ def main():
                     alpha=0.4, invert='False'
                 )
                 df_fc_detided_series = pd.Series(df_fc_detided, index=df_fc.index)
-            
-                df_event_fc = df_fc_detided_series.loc[event_start:event_end]
+
+                # taglio: tengo solo da bdate in poi
+                df_fc_cut = df_fc_detided_series.loc[df_fc_detided_series.index >= bdate]
+                if df_fc_cut.empty:
+                   # Salto questa forecast
+                   print ('WARNIN: somenthing is wrong with this forecast ts!')
+                   continue
+
+                # calcolo max 
+                df_event_fc = df_fc_cut.loc[event_start:event_end]
+
                 if not df_event_fc.empty:
-                    idx_max_fc = df_event_fc.idxmax()
-                    max_fc = df_event_fc.max()
+                   idx_max_fc = df_event_fc.idxmax()
+                   max_fc = df_event_fc.max()
                 else:
-                    idx_max_fc = df_fc.index[0]
-                    max_fc = df_fc_detided_series.max()
+                  idx_max_fc = df_fc_cut.index[0]
+                  max_fc = df_fc_cut.max()
             
                 color = cmap(norm(i))
-                plt.plot(
-                    df_fc.index,
-                    df_fc_detided_series,
-                    lw=2,
-                    color=color,
-                    label=f'FC {bdate:%d %b} detided (max {max_fc:.3f} m @ {idx_max_fc:%d/%m %H:%M})'
-                )
+                plt.plot(df_fc_cut.index,df_fc_cut,lw=2,color=color,label=f'Forecast {bdate:%d %b} detided (max {max_fc:.3f} m @ {idx_max_fc:%d/%m %H:%M})')
             
             plt.title(f'{name} – Detided sea level', fontsize=20)
             plt.ylabel('Sea level [m]', fontsize=20)
@@ -899,7 +904,7 @@ def main():
             plt.legend(loc='upper left', fontsize=12, framealpha=0.7)
             plt.xticks(fontsize=16, rotation=30)
             plt.yticks(fontsize=16)
-            plt.xlim(xlim_start, xlim_end)
+            plt.xlim(xlim_fc_start, xlim_fc_end)
             plt.grid()
             plt.tight_layout()
             outdir.mkdir(exist_ok=True, parents=True)
