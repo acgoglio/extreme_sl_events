@@ -1,4 +1,5 @@
 #lat;lon;name;path
+#35.004;25.739;IERA;/work/cmcc/ag15419/surge/ianos/obs/IERA_ianos.csv
 40.96900177001953;27.962200164794922;IOC-maer;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/BS_TS_TG_IOC-maer.nc
 38.25714111328125;22.07685089111328;Aigio;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_Aigio.nc
 35.3484001159668;25.15254020690918;Hrakleio;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_Hrakleio.nc

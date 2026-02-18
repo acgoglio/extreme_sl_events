@@ -1,5 +1,6 @@
-#lat;lon;name;path
-39.790000915527344;19.90999984741211;Kerkyra;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_Kerkyra.nc
+45.54819869995117;13.724499702453613;KOPER;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_KOPER_60minute.nc
+#39.790000915527344;19.90999984741211;Kerkyra;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_Kerkyra.nc
+#36.797508239746094;21.956436157226562;Koroni;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_Koroni.nc
 43.62480163574219;13.506500244140625;RMN-Ancona;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_RMN-Ancona.nc
 #41.4468994140625;12.63479995727539;RMN-Anzio;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_RMN-Anzio.nc
 41.140201568603516;16.865999221801758;RMN-Bari;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_RMN-Bari.nc
@@ -17,8 +18,10 @@
 40.14720153808594;18.497100830078125;RMN-Otranto;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_RMN-Otranto.nc
 #38.12139892578125;13.371299743652344;RMN-Palermo;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_RMN-Palermo.nc
 #40.02989959716797;15.275300025939941;RMN-Palinuro;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_RMN-Palinuro.nc
+#36.834800720214844;11.936599731445312;RMN-Pantelleria;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_RMN-Pantelleria.nc
 #40.895198822021484;12.96560001373291;RMN-Ponza;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_RMN-Ponza.nc
 #37.28580093383789;13.526800155639648;RMN-PortoEmpedocle;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_RMN-PortoEmpedocle.nc
+#36.66910171508789;15.12279987335205;RMN-PortopaloDiCapoPassero;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_RMN-PortopaloDiCapoPassero.nc
 44.49209976196289;12.282699584960938;RMN-Ravenna;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_RMN-Ravenna.nc
 #38.121700286865234;15.648900032043457;RMN-ReggioCalabria;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_RMN-ReggioCalabria.nc
 42.955101013183594;13.889800071716309;RMN-SBenedettoDelTronto;/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/MO_TS_TG_RMN-SBenedettoDelTronto.nc

@@ -7,9 +7,9 @@ import pandas as pd
 # INPUT UTENTE
 # ==========================
 # Old (all dates in a single file) or new (1 file per day) archive
-archive = "new"         
+archive = "old"         
 # Name of the event 
-event_name = "harry"    
+event_name = "vaia"    
 
 # --- OLD archive ---
 data_dir = Path("/data/inputs/METOCEAN/historical/obs/ocean/in_situ/CMS/MedSea/history_EIS_202511/tidegauge/")
